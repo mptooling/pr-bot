@@ -1,0 +1,31 @@
+{
+    "name": "pavlomaksymov/pr-bot",
+    "description": "PR Changes Notification Bot(GitHub)",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Pavlomaksymov\\PrBot\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Pavlo Maksymov",
+            "email": "maksimovpb@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {
+        "php": "^8.4"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "phpstan/phpstan": "^2.1.6",
+        "slevomat/coding-standard": "^8.15"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    }
+}
