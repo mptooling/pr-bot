@@ -12,7 +12,6 @@ use Psr\Log\LoggerInterface;
 
 final readonly class DraftPrUseCase implements PrEventHandlerInterface
 {
-
     public function __construct(
         private EntityManagerInterface $entityManager,
         private SlackMessageRepositoryInterface $slackMessageRepository,
@@ -35,7 +34,7 @@ final readonly class DraftPrUseCase implements PrEventHandlerInterface
 
         $isRemoved = $this->slackMessenger->removeMessage($slackMessage);
         if (!$isRemoved) {
-            return; // todo :: not sure what  to do here. Let's assume we do nothing
+            return;
         }
 
         $this->entityManager->remove($slackMessage);

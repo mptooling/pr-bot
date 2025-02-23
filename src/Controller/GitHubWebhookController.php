@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\PullRequest\ClosePrUseCase;
 use App\PullRequest\GithubPullRequestHandler;
-use App\PullRequest\OpenPrUseCase;
 use App\Transfers\WebHookTransfer;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;

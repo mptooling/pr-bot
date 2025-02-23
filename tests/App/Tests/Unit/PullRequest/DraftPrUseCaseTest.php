@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 namespace App\Tests\App\Tests\Unit\PullRequest;
 
 use App\Entity\SlackMessage;
@@ -79,10 +78,14 @@ class DraftPrUseCaseTest extends TestCase
 
         $this->slackMessenger->expects($this->once())
             ->method('removeMessage')
-            ->with($slackMessageEntity->getTs());
+            ->with($slackMessageEntity)
+            ->willReturn(true);
 
         $this->entityManager->expects($this->once())
             ->method('remove')
             ->with($slackMessageEntity);
+
+        // Act
+        $this->useCase->handle($webHookTransfer);
     }
 }
