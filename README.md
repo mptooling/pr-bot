@@ -2,6 +2,11 @@
 
 This project is a PHP application that handles GitHub webhooks and sends notifications to Slack.
 
+## Features
+- Listen to GitHub webhooks.
+- Posts message to slack chanel when PR is created.
+- Updates previous message when PR is closed or merged and adds a reaction to increase visibility.
+
 ## Requirements
 
 - PHP ^8.4
