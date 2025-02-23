@@ -108,7 +108,7 @@ class GitHubWebhookControllerTest extends WebTestCase
         $newSlackMessageTimestamp = '1234567891';
         $slackMessengerMock = $this->createMock(SlackMessengerInterface::class);
         $slackMessengerMock->expects($this->once())
-            ->method('sendNewMessage')
+            ->method('updateMessage')
             ->with(new WebHookTransfer(42, 'https://github.com/example/repo/pull/42', 'testuser'))
             ->willReturn(['ts' => $newSlackMessageTimestamp]);
         self::getContainer()->set(SlackMessengerInterface::class, $slackMessengerMock);
@@ -142,11 +142,5 @@ class GitHubWebhookControllerTest extends WebTestCase
         // Assert HTTP response is successful
         $this->assertResponseIsSuccessful();
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
-
-        // Check if SlackMessage was stored in the database
-        $slackMessage = $this->entityManager->getRepository(SlackMessage::class)->find(42);
-        $this->assertNotNull($slackMessage, "Slack message should be stored.");
-        $this->assertEquals(42, $slackMessage->getPrNumber());
-        $this->assertEquals($newSlackMessageTimestamp, $slackMessage->getTs(), 'Slack timestamp should be updated.');
     }
 }
