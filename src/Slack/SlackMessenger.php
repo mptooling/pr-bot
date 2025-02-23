@@ -49,14 +49,18 @@ final readonly class SlackMessenger implements SlackMessengerInterface
      */
     private function post(string $message, ?string $ts = null): array
     {
+        $url = 'https://slack.com/api/chat.postMessage';
         $payload = [
             'channel' => $this->slackChannel,
             'text'    => $message,
         ];
         if ($ts !== null) {
-            $payload['ts'] = sprintf("'%s'", $ts);
+            $payload['ts'] = $ts;
+            $url = 'https://slack.com/api/chat.update';
         }
-        $response = $this->httpClient->request('POST', 'https://slack.com/api/chat.postMessage', [
+        $this->logger->info('Payload', $payload);
+
+        $response = $this->httpClient->request('POST', $url, [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->slackBotToken,
                 'Content-Type'  => 'application/json',
