@@ -37,7 +37,8 @@ Run the Symfony server:
     ```
 
 ## TODO
-- Ignore draft PRs.
+- Remove message if PR switched to draft.
+- Wait until CI is green before posting message.
 
 ## License
 
