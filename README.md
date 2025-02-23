@@ -37,11 +37,7 @@ Run the Symfony server:
     ```
 
 ## TODO
-- Logging.
-- Extract logic from controller.
 - Ignore draft PRs.
-- Update slack message on PR closed.
-- Update slack message on PR merged.
 
 ## License
 
