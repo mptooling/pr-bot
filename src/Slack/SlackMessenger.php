@@ -10,7 +10,8 @@ final readonly class SlackMessenger implements SlackMessengerInterface
 {
     public function __construct(
         private HttpClientInterface $httpClient,
-        private string $slackWebhookUrl,
+        private string $slackBotToken,
+        private string $slackChannel,
     ) {
     }
 
@@ -22,12 +23,26 @@ final readonly class SlackMessenger implements SlackMessengerInterface
             $prUrl
         );
 
-        $response = $this->httpClient->request('POST', $this->slackWebhookUrl, [
+        $response = $this->httpClient->request('POST', 'https://slack.com/api/chat.postMessage', [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->slackBotToken, // Use Bot Token
+                'Content-Type' => 'application/json'
+            ],
             'json' => [
+                'channel' => $this->slackChannel, // Channel ID (e.g., #backend-reviews)
                 'text' => $message
             ]
         ]);
 
-        return $response->toArray();
+        $data = $response->toArray();
+
+        if (!$data['ok']) {
+            throw new \Exception('Slack API Error: ' . $data['error']);
+        }
+
+        return [
+            'message' => $data['message']['text'],
+            'ts' => $data['ts'] // Slack timestamp (message ID)
+        ];
     }
 }
