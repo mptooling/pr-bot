@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Tests\Controller;
 
+use App\Entity\SlackMessage;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -15,17 +16,12 @@ class GitHubWebhookControllerTest extends WebTestCase
     private string $githubWebhookSecret;
 
     private EntityManagerInterface $entityManager;
+
     protected function setUp(): void
     {
         $this->client = static::createClient();
         $this->githubWebhookSecret = $_ENV['GITHUB_WEBHOOK_SECRET'];
-    }
-
-    protected function tearDown(): void
-    {
-        parent::tearDown();
-
-
+        $this->entityManager = self::getContainer()->get(EntityManagerInterface::class);
     }
 
     public function testHandleWebhookForbidsUnsignedRequest(): void
@@ -73,7 +69,7 @@ class GitHubWebhookControllerTest extends WebTestCase
                 "user" => ["login" => "testuser"],
             ],
         ];
-        $payloadJson = json_encode($payload);
+        $payloadJson = (string) json_encode($payload);
         $correctSignature = 'sha256=' . hash_hmac('sha256', $payloadJson, $this->githubWebhookSecret);
 
         // Act
@@ -89,9 +85,9 @@ class GitHubWebhookControllerTest extends WebTestCase
         $this->assertResponseStatusCodeSame(Response::HTTP_OK);
 
         // Check if SlackMessage was stored in the database
-//        $slackMessage = $this->slackMessageRepository->find(42);
-//        $this->assertNotNull($slackMessage, "Slack message should be stored.");
-//        $this->assertEquals(42, $slackMessage->getPrNumber());
-//        $this->assertNotEmpty($slackMessage->getTs(), "Slack timestamp should not be empty.");
+        $slackMessage = $this->entityManager->getRepository(SlackMessage::class)->find(42);
+        $this->assertNotNull($slackMessage, "Slack message should be stored.");
+        $this->assertEquals(42, $slackMessage->getPrNumber());
+        $this->assertNotEmpty($slackMessage->getTs(), "Slack timestamp should not be empty.");
     }
 }
