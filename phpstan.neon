@@ -1,8 +1,4 @@
 parameters:
-    level: 6
+    level: 8
     paths:
-        - bin/
-        - config/
-        - public/
         - src/
-        - tests/

@@ -19,6 +19,13 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
-
+    App\Controller\GitHubWebhookController:
+        tags: ['controller.service_arguments']
+        public: true
+        arguments:
+            $githubWebhookSecret: '%env(GITHUB_WEBHOOK_SECRET)%'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+    App\Slack\SlackMessenger:
+        arguments:
+            $slackWebhookUrl: 'test'
