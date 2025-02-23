@@ -8,6 +8,8 @@ This project is a PHP application that handles GitHub webhooks and sends notific
 - Listen to GitHub webhooks.
 - Posts message to slack channel when PR is created.
 - Updates the previous message when PR is closed or merged and adds a reaction to increasing visibility.
+- Removes slack message if PR becomes draft.
+- Customizable Slack mentions and emojis.
 
 ## Requirements
 
@@ -53,7 +55,6 @@ php bin/phpunit
 ```
 
 ## TODO
-- Remove message if PR switched to draft.
 - Wait until CI is green before posting the message.
 
 ## License
