@@ -18,4 +18,6 @@ interface SlackMessengerInterface
      * @return array<string, string>
      */
     public function updateMessage(WebHookTransfer $webHookTransfer, SlackMessage $slackMessage): array;
+
+    public function removeMessage(SlackMessage $slackMessage): bool;
 }

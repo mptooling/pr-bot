@@ -23,11 +23,27 @@ final readonly class DraftPrUseCase implements PrEventHandlerInterface
 
     public function isApplicable(string $action): bool
     {
-        return $action === 'draft';
+        return $action === 'converted_to_draft';
     }
 
     public function handle(WebHookTransfer $webHookTransfer): void
     {
-        // TODO: Implement handle() method.
+        $slackMessage = $this->slackMessageRepository->findOneByPrNumber($webHookTransfer->prNumber);
+        if ($slackMessage === null) {
+            return; // Do nothing if the slackMessage is not found
+        }
+
+        $isRemoved = $this->slackMessenger->removeMessage($slackMessage);
+        if (!$isRemoved) {
+            return; // todo :: not sure what  to do here. Let's assume we do nothing
+        }
+
+        $this->entityManager->remove($slackMessage);
+        $this->entityManager->flush();
+
+        $this->logger->info(
+            'Slack slackMessage removed as it the became draft',
+            ['prNumber' => $webHookTransfer->prNumber]
+        );
     }
 }
