@@ -28,6 +28,7 @@ services:
     arguments:
       $slackBotToken: '%env(SLACK_BOT_TOKEN)%'
       $slackChannel: '%env(SLACK_CHANNEL)%'
+      $slackMentionTag: '%env(SLACK_MESSAGE_TAG)%'
 
   App\Authenticator\SignatureAuthenticator:
     arguments:
