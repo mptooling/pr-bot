@@ -8,12 +8,16 @@ This project is a PHP application that handles GitHub webhooks and sends notific
 - Composer
 - Symfony
 
+Bot Requirements:
+- Channel permissions: invite bot to the channel so it can react on messages.
+- Bot permissions: `chan:join`, `chat:write` and `chat:write.public`, `incomming-webhook`, `reaction:read`, `reaction:write`.
+
 ## Installation
 
 1. Clone the repository:
     ```sh
-    git clone <repository-url>
-    cd <repository-directory>
+    git clone git@github.com:mptooling/pr-bot.git
+    cd cd pr-bot
     ```
 
 2. Install dependencies:
@@ -35,6 +39,11 @@ Run the Symfony server:
     ```sh
     symfony server:start
     ```
+
+## Testing
+```sh
+php bin/phpunit
+```
 
 ## TODO
 - Remove message if PR switched to draft.
