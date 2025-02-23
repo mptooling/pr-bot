@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App\Tests\Unit\PullRequest;
+namespace App\Tests\Unit\PullRequest;
 
 use App\Entity\SlackMessage;
 use App\PullRequest\ClosePrUseCase;
