@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\Unit\Validator;
+namespace App\Tests\Unit\Authenticator;
 
-use App\Validator\Authenticator;
+use App\Authenticator\SignatureAuthenticator;
 use PHPUnit\Framework\TestCase;
 
-class AuthenticatorTest extends TestCase
+class SignatureAuthenticatorTest extends TestCase
 {
     private string $secret;
     protected function setUp(): void
@@ -29,7 +29,7 @@ class AuthenticatorTest extends TestCase
         $signature = 'sha256=' . hash_hmac('sha256', $payloadJson, $this->secret);
 
         // Act
-        $isAuthenticated = (new Authenticator($this->secret))->isAuthenticated($payloadJson, $signature);
+        $isAuthenticated = new SignatureAuthenticator($this->secret)->isAuthenticated($payloadJson, $signature);
 
         //Assert
         $this->assertTrue($isAuthenticated);

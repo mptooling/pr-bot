@@ -22,11 +22,17 @@ services:
     App\Controller\GitHubWebhookController:
         tags: ['controller.service_arguments']
         public: true
-        arguments:
-            $githubWebhookSecret: '%env(GITHUB_WEBHOOK_SECRET)%'
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
     App\Slack\SlackMessenger:
         arguments:
             $slackBotToken: '%env(SLACK_BOT_TOKEN)%'
             $slackChannel: '%env(SLACK_CHANNEL)%'
+
+    App\Authenticator\SignatureAuthenticator:
+        arguments:
+            $secret: '%env(GITHUB_WEBHOOK_SECRET)%'
+
+    App\EventListener\GitHubWebhookRequestListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }

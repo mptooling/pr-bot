@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace App\Validator;
+namespace App\Authenticator;
 
-final readonly class Authenticator
+final readonly class SignatureAuthenticator
 {
     public function __construct(private string $secret)
     {

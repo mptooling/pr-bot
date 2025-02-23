@@ -16,18 +16,12 @@ final class GitHubWebhookController
     public function __construct(
         private OpenPrUseCase $prOpenedUseCase,
         private ClosePrUseCase $prClosedUseCase,
-        private string $githubWebhookSecret
     ) {
     }
 
     #[Route('/webhook/github', name: 'github_webhook', methods: ['POST'])]
     public function handleWebhook(Request $request): JsonResponse
     {
-        $response = $this->verifySignature($request);
-        if ($response !== null) {
-            return $response;
-        }
-
         // Parse JSON
         $data = json_decode($request->getContent(), true);
         $action = $data['action'] ?? null;
@@ -58,21 +52,5 @@ final class GitHubWebhookController
         }
 
         return new JsonResponse(['message' => 'No action taken']);
-    }
-
-    private function verifySignature(Request $request): ?JsonResponse
-    {
-        // Get GitHub Signature
-        $signature = $request->headers->get('X-Hub-Signature-256');
-        if (!$signature) {
-            return new JsonResponse(['error' => 'no signature'], JsonResponse::HTTP_FORBIDDEN);
-        }
-
-        $expected = "sha256=" . hash_hmac('sha256', $request->getContent(), $this->githubWebhookSecret);
-        if (!hash_equals($expected, $signature)) {
-            return new JsonResponse(['error' => 'Invalid signature'], JsonResponse::HTTP_FORBIDDEN);
-        }
-
-        return null;
     }
 }
