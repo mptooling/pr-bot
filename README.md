@@ -1,3 +1,5 @@
+[![CI](https://github.com/mptooling/pr-bot/actions/workflows/ci.yml/badge.svg)](https://github.com/mptooling/pr-bot/actions/workflows/ci.yml)
+
 # GitHub Webhook Handler
 
 This project is a PHP application that handles GitHub webhooks and sends notifications to Slack.
