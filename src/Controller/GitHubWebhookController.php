@@ -4,9 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\PullRequest\ClosePrUseCase;
 use App\PullRequest\GithubPullRequestHandler;
-use App\PullRequest\OpenPrUseCase;
 use App\Transfers\WebHookTransfer;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,17 +26,13 @@ final class GitHubWebhookController
         $prNumber = $data['pull_request']['number'] ?? null;
         $prUrl = $data['pull_request']['html_url'] ?? '';
         $prAuthor = $data['pull_request']['user']['login'] ?? '';
-        $isDraft = $data['pull_request']['draft'] ?? false; // Check if it's a draft PR
-        if ($isDraft) {
-            return new JsonResponse(['message' => 'Draft PRs are ignored']);
-        }
+
         if (!$prNumber) {
             return new JsonResponse(['error' => 'No PR number found'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
         $transfer = new WebHookTransfer($prNumber, $prUrl, $prAuthor, $data['pull_request']['merged'] ?? false);
         $this->handler->handle($action, $transfer);
-
 
         return new JsonResponse("ok");
     }

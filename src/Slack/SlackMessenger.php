@@ -116,9 +116,9 @@ final readonly class SlackMessenger implements SlackMessengerInterface
                     'Content-Type'  => 'application/json',
                 ],
                 'json'    => [
-                    'channel'   => $this->slackChannel, // Ensure this is a valid channel ID
+                    'channel' => $this->slackChannel, // Ensure this is a valid channel ID
                     'timestamp' => $ts, // Message timestamp
-                    'name'      => $emoji, // Emoji name without colons, e.g., "rocket"
+                    'name' => $emoji, // Emoji name without colons, e.g., "rocket"
                 ],
             ]);
         } catch (\Throwable $throwable) {
@@ -138,5 +138,47 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         if (!$data['ok']) {
             $this->logger->error('Failed response from slack', $data);
         }
+    }
+
+    public function removeMessage(SlackMessage $slackMessage): bool
+    {
+        try {
+            $response = $this->httpClient->request('POST', 'https://slack.com/api/chat.delete', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->slackBotToken,
+                    'Content-Type'  => 'application/json',
+                ],
+                'json'    => [
+                    'channel' => $this->slackChannel, // Ensure this is a valid channel ID
+                    'ts'      => $slackMessage->getTs(), // Message timestamp
+                ],
+            ]);
+        } catch (\Throwable $throwable) {
+            $this->logger->error(
+                'Failed to remove slack message',
+                ['data' => $slackMessage, 'exception' => $throwable->getMessage()]
+            );
+
+            return false;
+        }
+
+        try {
+            $data = $response->toArray();
+        } catch (\Throwable $throwable) {
+            $this->logger->error(
+                'Failed to remove slack message',
+                ['data' => $slackMessage, 'exception' => $throwable->getMessage()]
+            );
+
+            return false;
+        }
+
+        if (!$data['ok']) {
+            $this->logger->error('Failed to remove slack message', $data);
+
+            return false;
+        }
+
+        return true;
     }
 }
