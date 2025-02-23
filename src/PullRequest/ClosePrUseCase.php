@@ -14,7 +14,6 @@ use Psr\Log\LoggerInterface;
 final readonly class ClosePrUseCase
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
         private SlackMessageRepositoryInterface $slackMessageRepository,
         private SlackMessengerInterface $slackMessenger,
         private LoggerInterface $logger,
@@ -39,11 +38,6 @@ final readonly class ClosePrUseCase
 
             return;
         }
-
-        $slackMessage->setTs($slackResponse['ts']);
-
-        $this->entityManager->persist($slackMessage);
-        $this->entityManager->flush();
 
         $this->logger->info('Slack message updated', ['prNumber' => $webHookTransfer->prNumber]);
     }
