@@ -44,7 +44,15 @@ final readonly class SlackMessenger implements SlackMessengerInterface
             $webHookTransfer->prAuthor
         );
 
-        return $this->post($message, $slackMessage->getTs());
+        $result = $this->post($message, $slackMessage->getTs());
+        if (empty($result)) {
+            return [];
+        }
+
+        $reaction = $webHookTransfer->isMerged ? 'white_check_mark' : 'no_entry_sign';
+        $this->addReactionToMessage($slackMessage->getTs(), $reaction);
+
+        return $result;
     }
 
     /**
@@ -63,24 +71,72 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         }
         $this->logger->info('Payload', $payload);
 
-        $response = $this->httpClient->request('POST', $url, [
-            'headers' => [
-                'Authorization' => 'Bearer ' . $this->slackBotToken,
-                'Content-Type'  => 'application/json',
-            ],
-            'json'    => $payload,
-        ]);
+        try {
+            $response = $this->httpClient->request('POST', $url, [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->slackBotToken,
+                    'Content-Type'  => 'application/json',
+                ],
+                'json'    => $payload,
+            ]);
+        } catch (\Throwable $throwable) {
+            $this->logger->error('Failed to send message to slack', ['exception' => $throwable->getMessage()]);
 
-        $data = $response->toArray();
-        $this->logger->info('Slack response', $data);
-
-        if (!$data['ok']) {
             return [];
         }
+
+        try {
+            $data = $response->toArray();
+        } catch (\Throwable $throwable) {
+            $this->logger->error('Failed to add reaction to slack message', ['exception' => $throwable->getMessage()]);
+
+            return [];
+        }
+
+        if (!$data['ok']) {
+            $this->logger->error('Failed response from slack', $data);
+
+            return [];
+        }
+
+        $this->logger->info('Slack response', $data);
 
         return [
             'message' => $data['message']['text'],
             'ts'      => $data['ts'], // Slack timestamp (message ID)
         ];
+    }
+
+    public function addReactionToMessage(string $ts, string $emoji): void
+    {
+        try {
+            $response = $this->httpClient->request('POST', 'https://slack.com/api/reactions.add', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->slackBotToken,
+                    'Content-Type'  => 'application/json',
+                ],
+                'json'    => [
+                    'channel'   => $this->slackChannel, // Ensure this is a valid channel ID
+                    'timestamp' => $ts, // Message timestamp
+                    'name'      => $emoji, // Emoji name without colons, e.g., "rocket"
+                ],
+            ]);
+        } catch (\Throwable $throwable) {
+            $this->logger->error('Failed to add reaction to slack message', ['exception' => $throwable->getMessage()]);
+
+            return;
+        }
+
+        try {
+            $data = $response->toArray();
+        } catch (\Throwable $throwable) {
+            $this->logger->error('Failed to add reaction to slack message', ['exception' => $throwable->getMessage()]);
+
+            return;
+        }
+
+        if (!$data['ok']) {
+            $this->logger->error('Failed response from slack', $data);
+        }
     }
 }
