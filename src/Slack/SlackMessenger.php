@@ -24,7 +24,8 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     public function sendNewMessage(WebHookTransfer $webHookTransfer): array
     {
         $message = sprintf(
-            'New PR opened by %s: %s',
+            ':rocket: @backend, please review <%s|PR #%s> by %s',
+            $webHookTransfer->prUrl,
             $webHookTransfer->prNumber,
             $webHookTransfer->prAuthor
         );
@@ -36,8 +37,9 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     public function updateMessage(WebHookTransfer $webHookTransfer, SlackMessage $slackMessage): array
     {
         $message = sprintf(
-            '[%s] ~New PR opened by %s: %s~',
+            '[%s] ~:rocket: @backend, please review <%s|PR #%s> by %s~',
             $webHookTransfer->isMerged ? 'Merged' : 'Closed',
+            $webHookTransfer->prUrl,
             $webHookTransfer->prNumber,
             $webHookTransfer->prAuthor
         );
