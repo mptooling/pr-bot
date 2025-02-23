@@ -6,8 +6,8 @@ This project is a PHP application that handles GitHub webhooks and sends notific
 
 ## Features
 - Listen to GitHub webhooks.
-- Posts message to slack chanel when PR is created.
-- Updates previous message when PR is closed or merged and adds a reaction to increase visibility.
+- Posts message to slack channel when PR is created.
+- Updates the previous message when PR is closed or merged and adds a reaction to increasing visibility.
 
 ## Requirements
 
@@ -16,7 +16,7 @@ This project is a PHP application that handles GitHub webhooks and sends notific
 - Symfony
 
 Bot Requirements:
-- Channel permissions: invite bot to the channel so it can react on messages.
+- Channel permissions: invite the bot to the channel to react to messages.
 - Bot permissions: `chan:join`, `chat:write` and `chat:write.public`, `incomming-webhook`, `reaction:read`, `reaction:write`.
 
 ## Installation
@@ -54,7 +54,7 @@ php bin/phpunit
 
 ## TODO
 - Remove message if PR switched to draft.
-- Wait until CI is green before posting message.
+- Wait until CI is green before posting the message.
 
 ## License
 
