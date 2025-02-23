@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Entity\SlackMessage;
+use App\Repository\SlackMessageRepositoryInterface;
 use App\Slack\SlackMessengerInterface;
 use App\Transfers\WebHookTransfer;
 use Doctrine\ORM\EntityManagerInterface;
@@ -99,5 +100,53 @@ class GitHubWebhookControllerTest extends WebTestCase
         $this->assertNotNull($slackMessage, "Slack message should be stored.");
         $this->assertEquals(42, $slackMessage->getPrNumber());
         $this->assertNotEmpty($slackMessage->getTs(), "Slack timestamp should not be empty.");
+    }
+
+    public function testHandleWebhookPrClosed(): void
+    {
+        // Arrange
+        $newSlackMessageTimestamp = '1234567891';
+        $slackMessengerMock = $this->createMock(SlackMessengerInterface::class);
+        $slackMessengerMock->expects($this->once())
+            ->method('sendNewMessage')
+            ->with(new WebHookTransfer(42, 'https://github.com/example/repo/pull/42', 'testuser'))
+            ->willReturn(['ts' => $newSlackMessageTimestamp]);
+        self::getContainer()->set(SlackMessengerInterface::class, $slackMessengerMock);
+
+        $repository = $this->createMock(SlackMessageRepositoryInterface::class);
+        $repository->expects($this->once())
+            ->method('findOneByPrNumber')
+            ->with(42)
+            ->willReturn((new SlackMessage()->setPrNumber(42)->setTs('1234567890')));
+        self::getContainer()->set(SlackMessageRepositoryInterface::class, $repository);
+
+        $payload = [
+            "action" => "closed",
+            "pull_request" => [
+                "number" => 42,
+                "html_url" => "https://github.com/example/repo/pull/42",
+                "user" => ["login" => "testuser"],
+            ],
+        ];
+        $payloadJson = (string) json_encode($payload);
+        $correctSignature = 'sha256=' . hash_hmac('sha256', $payloadJson, $this->githubWebhookSecret);
+
+        // Act
+        $this->client->request(
+            method: 'POST',
+            uri: '/webhook/github',
+            server: ['HTTP_CONTENT_TYPE' => 'application/json', 'HTTP_X-Hub-Signature-256' => $correctSignature],
+            content: json_encode($payload), // @phpstan-ignore-line
+        );
+
+        // Assert HTTP response is successful
+        $this->assertResponseIsSuccessful();
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        // Check if SlackMessage was stored in the database
+        $slackMessage = $this->entityManager->getRepository(SlackMessage::class)->find(42);
+        $this->assertNotNull($slackMessage, "Slack message should be stored.");
+        $this->assertEquals(42, $slackMessage->getPrNumber());
+        $this->assertEquals($newSlackMessageTimestamp, $slackMessage->getTs(), 'Slack timestamp should be updated.');
     }
 }
