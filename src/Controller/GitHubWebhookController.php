@@ -49,6 +49,11 @@ final class GitHubWebhookController
 
     private function handlePROpened(int $prNumber, string $prUrl, string $prAuthor): JsonResponse
     {
+        $message = $this->entityManager->getRepository(SlackMessage::class)->findOneBy(['prNumber' => $prNumber]);
+        if ($message !== null) {
+            return new JsonResponse(['message' => "Slack message already sent for PR #$prNumber"]);
+        }
+
         $slackResponse = $this->slackMessenger->sendNewMessage($prNumber, $prUrl, $prAuthor);
         $response = new JsonResponse(['message' => "Slack message sent for PR #$prNumber"]);
 
