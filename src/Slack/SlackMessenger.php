@@ -36,7 +36,8 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     public function updateMessage(WebHookTransfer $webHookTransfer, SlackMessage $slackMessage): array
     {
         $message = sprintf(
-            '[Closed] ~New PR opened by %s: %s~',
+            '[%s] ~New PR opened by %s: %s~',
+            $webHookTransfer->isMerged ? 'Merged' : 'Closed',
             $webHookTransfer->prNumber,
             $webHookTransfer->prAuthor
         );

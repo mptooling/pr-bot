@@ -10,6 +10,7 @@ final readonly class WebHookTransfer
         public int $prNumber,
         public string $prUrl,
         public string $prAuthor,
+        public bool $isMerged = false,
     ) {
     }
 }

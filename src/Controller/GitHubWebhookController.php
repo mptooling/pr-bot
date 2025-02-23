@@ -46,7 +46,8 @@ final class GitHubWebhookController
         }
 
         if ($action === 'closed') {
-            $this->prClosedUseCase->handle(new WebHookTransfer($prNumber, $prUrl, $prAuthor));
+            $isMerged = $data['pull_request']['merged'] ?? false;
+            $this->prClosedUseCase->handle(new WebHookTransfer($prNumber, $prUrl, $prAuthor, $isMerged));
 
             return new JsonResponse("ok");
         }
