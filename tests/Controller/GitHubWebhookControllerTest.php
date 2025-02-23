@@ -6,6 +6,7 @@ namespace App\Tests\Controller;
 
 use App\Entity\SlackMessage;
 use App\Slack\SlackMessengerInterface;
+use App\Transfers\WebHookTransfer;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -65,7 +66,7 @@ class GitHubWebhookControllerTest extends WebTestCase
         $slackMessengerMock = $this->createMock(SlackMessengerInterface::class);
         $slackMessengerMock->expects($this->once())
             ->method('sendNewMessage')
-            ->with(42, 'https://github.com/example/repo/pull/42', 'testuser')
+            ->with(new WebHookTransfer(42, 'https://github.com/example/repo/pull/42', 'testuser'))
             ->willReturn(['ts' => '1234567890']);
 
         self::getContainer()->set(SlackMessengerInterface::class, $slackMessengerMock);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Slack;
 
+use App\Transfers\WebHookTransfer;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final readonly class SlackMessenger implements SlackMessengerInterface
@@ -15,23 +16,23 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     ) {
     }
 
-    public function sendNewMessage(int $prNumber, string $prUrl, string $prAuthor): array
+    public function sendNewMessage(WebHookTransfer $webHookTransfer): array
     {
         $message = sprintf(
             'New PR opened by %s: %s',
-            $prAuthor,
-            $prUrl
+            $webHookTransfer->prNumber,
+            $webHookTransfer->prAuthor
         );
 
         $response = $this->httpClient->request('POST', 'https://slack.com/api/chat.postMessage', [
             'headers' => [
-                'Authorization' => 'Bearer ' . $this->slackBotToken, // Use Bot Token
-                'Content-Type' => 'application/json'
+                'Authorization' => 'Bearer ' . $this->slackBotToken,
+                'Content-Type'  => 'application/json',
             ],
-            'json' => [
-                'channel' => $this->slackChannel, // Channel ID (e.g., #backend-reviews)
-                'text' => $message
-            ]
+            'json'    => [
+                'channel' => $this->slackChannel,
+                'text'    => $message,
+            ],
         ]);
 
         $data = $response->toArray();
@@ -42,7 +43,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
 
         return [
             'message' => $data['message']['text'],
-            'ts' => $data['ts'] // Slack timestamp (message ID)
+            'ts'      => $data['ts'], // Slack timestamp (message ID)
         ];
     }
 }

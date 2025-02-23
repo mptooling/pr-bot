@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Entity\SlackMessage;
-use App\Slack\SlackMessengerInterface;
+use App\PullRequest\OpenPrUseCase;
+use App\Transfers\WebHookTransfer;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
-use Doctrine\ORM\EntityManagerInterface;
 
 final class GitHubWebhookController
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
-        private SlackMessengerInterface $slackMessenger,
+        private OpenPrUseCase $prOpenedUseCase,
         private string $githubWebhookSecret
     ) {
     }
@@ -39,36 +37,13 @@ final class GitHubWebhookController
             return new JsonResponse(['error' => 'No PR number found'], JsonResponse::HTTP_BAD_REQUEST);
         }
 
-        // Handle PR Opened
         if ($action === 'opened') {
-            return $this->handlePROpened($prNumber, $prUrl, $prAuthor);
+            $this->prOpenedUseCase->handle(new WebHookTransfer($prNumber, $prUrl, $prAuthor));
+
+            return new JsonResponse("ok");
         }
 
         return new JsonResponse(['message' => 'No action taken']);
-    }
-
-    private function handlePROpened(int $prNumber, string $prUrl, string $prAuthor): JsonResponse
-    {
-        $message = $this->entityManager->getRepository(SlackMessage::class)->findOneBy(['prNumber' => $prNumber]);
-        if ($message !== null) {
-            return new JsonResponse(['message' => "Slack message already sent for PR #$prNumber"]);
-        }
-
-        $slackResponse = $this->slackMessenger->sendNewMessage($prNumber, $prUrl, $prAuthor);
-        $response = new JsonResponse(['message' => "Slack message sent for PR #$prNumber"]);
-
-        if (!isset($slackResponse['ts'])) {
-            return $response;
-        }
-
-        $entity = new SlackMessage();
-        $entity->setPrNumber($prNumber)
-            ->setTs($slackResponse['ts']);
-
-        $this->entityManager->persist($entity);
-        $this->entityManager->flush();
-
-        return $response;
     }
 
     private function verifySignature(Request $request): ?JsonResponse
