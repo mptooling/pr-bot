@@ -4,39 +4,40 @@ declare(strict_types=1);
 
 namespace App\Entity;
 
-
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: "slack_messages")]
-final readonly class SlackMessage
+final class SlackMessage
 {
     #[ORM\Id]
     #[ORM\Column(type: "integer")]
-    private int $prNumber;
+    private ?int $prNumber = null;
 
     #[ORM\Column(type: "string", length: 255)]
-    private string $ts;
+    private ?string $ts = null;
 
-    public function getPrNumber(): int
+    public function getPrNumber(): ?int
     {
         return $this->prNumber;
     }
 
-    public function setPrNumber(int $prNumber): self
+    public function setPrNumber(?int $prNumber): self
     {
         $this->prNumber = $prNumber;
+
         return $this;
     }
 
-    public function getTs(): string
+    public function getTs(): ?string
     {
         return $this->ts;
     }
 
-    public function setTs(string $ts): self
+    public function setTs(?string $ts): self
     {
         $this->ts = $ts;
+
         return $this;
     }
 }

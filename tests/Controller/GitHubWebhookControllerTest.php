@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Controller;
 
 use App\Entity\SlackMessage;
+use App\Slack\SlackMessengerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -61,6 +62,14 @@ class GitHubWebhookControllerTest extends WebTestCase
     public function testHandleWebhookPROpened(): void
     {
         // Arrange
+        $slackMessengerMock = $this->createMock(SlackMessengerInterface::class);
+        $slackMessengerMock->expects($this->once())
+            ->method('sendNewMessage')
+            ->with(42, 'https://github.com/example/repo/pull/42', 'testuser')
+            ->willReturn(['ts' => '1234567890']);
+
+        self::getContainer()->set(SlackMessengerInterface::class, $slackMessengerMock);
+
         $payload = [
             "action" => "opened",
             "pull_request" => [
