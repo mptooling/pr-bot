@@ -53,7 +53,6 @@ php bin/phpunit
 ```
 
 ## TODO
-- Remove message if PR switched to draft.
 - Wait until CI is green before posting the message.
 
 ## License
