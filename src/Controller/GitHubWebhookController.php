@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\PullRequest\ClosePrUseCase;
 use App\PullRequest\OpenPrUseCase;
 use App\Transfers\WebHookTransfer;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -14,6 +15,7 @@ final class GitHubWebhookController
 {
     public function __construct(
         private OpenPrUseCase $prOpenedUseCase,
+        private ClosePrUseCase $prClosedUseCase,
         private string $githubWebhookSecret
     ) {
     }
@@ -39,6 +41,12 @@ final class GitHubWebhookController
 
         if ($action === 'opened') {
             $this->prOpenedUseCase->handle(new WebHookTransfer($prNumber, $prUrl, $prAuthor));
+
+            return new JsonResponse("ok");
+        }
+
+        if ($action === 'closed') {
+            $this->prClosedUseCase->handle(new WebHookTransfer($prNumber, $prUrl, $prAuthor));
 
             return new JsonResponse("ok");
         }
