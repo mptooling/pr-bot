@@ -17,18 +17,17 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         private LoggerInterface $logger,
         private string $slackBotToken,
         private string $slackChannel,
+        private string $slackMentionTag = '@channel',
+        private string $slackReactionNewPr = 'rocket',
+        private string $slackReactionMergedPr = 'white_check_mark',
+        private string $slackReactionClosedPr = 'no_entry_sign',
     ) {
     }
 
     #[Override]
     public function sendNewMessage(WebHookTransfer $webHookTransfer): array
     {
-        $message = sprintf(
-            ':rocket: @backend, please review <%s|PR #%s> by %s',
-            $webHookTransfer->prUrl,
-            $webHookTransfer->prNumber,
-            $webHookTransfer->prAuthor
-        );
+        $message = $this->composeNewSlackMessage($webHookTransfer);
 
         return $this->post($message);
     }
@@ -37,11 +36,9 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     public function updateMessage(WebHookTransfer $webHookTransfer, SlackMessage $slackMessage): array
     {
         $message = sprintf(
-            '[%s] ~:rocket: @backend, please review <%s|PR #%s> by %s~',
+            '[%s] ~%s~',
             $webHookTransfer->isMerged ? 'Merged' : 'Closed',
-            $webHookTransfer->prUrl,
-            $webHookTransfer->prNumber,
-            $webHookTransfer->prAuthor
+            $this->composeNewSlackMessage($webHookTransfer),
         );
 
         $result = $this->post($message, $slackMessage->getTs());
@@ -49,7 +46,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
             return [];
         }
 
-        $reaction = $webHookTransfer->isMerged ? 'white_check_mark' : 'no_entry_sign';
+        $reaction = $webHookTransfer->isMerged ? $this->slackReactionMergedPr : $this->slackReactionClosedPr;
         $this->addReactionToMessage((string)$slackMessage->getTs(), $reaction);
 
         return $result;
@@ -180,5 +177,23 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         }
 
         return true;
+    }
+
+    /**
+     * @param WebHookTransfer $webHookTransfer
+     *
+     * @return string
+     */
+    private function composeNewSlackMessage(WebHookTransfer $webHookTransfer): string
+    {
+        $message = sprintf(
+            ':%s: %s, please review <%s|PR #%s> by %s',
+            $this->slackReactionNewPr,
+            $this->slackMentionTag,
+            $webHookTransfer->prUrl,
+            $webHookTransfer->prNumber,
+            $webHookTransfer->prAuthor
+        );
+        return $message;
     }
 }
