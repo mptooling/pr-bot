@@ -74,14 +74,14 @@ class GitHubWebhookControllerTest extends WebTestCase
         self::getContainer()->set(SlackMessengerInterface::class, $slackMessengerMock);
 
         $payload = [
-            "action" => "opened",
+            "action"       => "opened",
             "pull_request" => [
-                "number" => 42,
+                "number"   => 42,
                 "html_url" => "https://github.com/example/repo/pull/42",
-                "user" => ["login" => "testuser"],
+                "user"     => ["login" => "testuser"],
             ],
         ];
-        $payloadJson = (string) json_encode($payload);
+        $payloadJson = (string)json_encode($payload);
         $correctSignature = 'sha256=' . hash_hmac('sha256', $payloadJson, $this->githubWebhookSecret);
 
         // Act
@@ -104,7 +104,8 @@ class GitHubWebhookControllerTest extends WebTestCase
     }
 
     #[DataProvider('githubClosedPrMergeStatusDataProvider')]
-    public function testHandleWebhookPrClosed(bool $isMerged): void // todo :: fix test. Either mock external services or change to unit test
+    public function testHandleWebhookPrClosed(bool $isMerged
+    ): void // todo :: fix test. Either mock external services or change to unit test
     {
         $this->markTestSkipped('do not know how to mock external services in symfony');
         // Arrange
@@ -125,17 +126,17 @@ class GitHubWebhookControllerTest extends WebTestCase
         self::getContainer()->set(SlackMessageRepositoryInterface::class, $repository);
 
         $payload = [
-            "action" => "closed",
+            "action"       => "closed",
             "pull_request" => [
-                "number" => 42,
+                "number"   => 42,
                 "html_url" => "https://github.com/example/repo/pull/42",
-                "user" => ["login" => "testuser"],
+                "user"     => ["login" => "testuser"],
             ],
         ];
         if ($isMerged) {
             $payload['pull_request']['merged'] = true;
         }
-        $payloadJson = (string) json_encode($payload);
+        $payloadJson = (string)json_encode($payload);
         $correctSignature = 'sha256=' . hash_hmac('sha256', $payloadJson, $this->githubWebhookSecret);
 
         // Act
@@ -157,7 +158,7 @@ class GitHubWebhookControllerTest extends WebTestCase
     public static function githubClosedPrMergeStatusDataProvider(): array
     {
         return [
-            'merged' => [true],
+            'merged'     => [true],
             'not merged' => [false],
         ];
     }
