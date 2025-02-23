@@ -11,7 +11,7 @@ use App\Transfers\WebHookTransfer;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
-final readonly class OpenPrUseCase
+final readonly class OpenPrUseCase implements PrEventHandlerInterface
 {
     public function __construct(
         private EntityManagerInterface $entityManager,
@@ -48,5 +48,10 @@ final readonly class OpenPrUseCase
         $this->entityManager->flush();
 
         $this->logger->info('Slack message sent', ['prNumber' => $webHookTransfer->prNumber]);
+    }
+
+    public function isApplicable(string $action): bool
+    {
+        return $action === 'opened' || $action === 'ready_for_review';
     }
 }

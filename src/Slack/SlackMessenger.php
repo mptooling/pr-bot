@@ -50,7 +50,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         }
 
         $reaction = $webHookTransfer->isMerged ? 'white_check_mark' : 'no_entry_sign';
-        $this->addReactionToMessage($slackMessage->getTs(), $reaction);
+        $this->addReactionToMessage((string)$slackMessage->getTs(), $reaction);
 
         return $result;
     }
