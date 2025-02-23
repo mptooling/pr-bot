@@ -6,33 +6,40 @@
 parameters:
 
 services:
-    # default configuration for services in *this* file
-    _defaults:
-        autowire: true      # Automatically injects dependencies in your services.
-        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+  # default configuration for services in *this* file
+  _defaults:
+    autowire: true      # Automatically injects dependencies in your services.
+    autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
 
-    # makes classes in src/ available to be used as services
-    # this creates a service per class whose id is the fully-qualified class name
-    App\:
-        resource: '../src/'
-        exclude:
-            - '../src/DependencyInjection/'
-            - '../src/Entity/'
-            - '../src/Kernel.php'
-    App\Controller\GitHubWebhookController:
-        tags: ['controller.service_arguments']
-        public: true
-    # add more service definitions when explicit configuration is needed
-    # please note that last definitions always *replace* previous ones
-    App\Slack\SlackMessenger:
-        arguments:
-            $slackBotToken: '%env(SLACK_BOT_TOKEN)%'
-            $slackChannel: '%env(SLACK_CHANNEL)%'
+  # makes classes in src/ available to be used as services
+  # this creates a service per class whose id is the fully-qualified class name
+  App\:
+    resource: '../src/'
+    exclude:
+      - '../src/DependencyInjection/'
+      - '../src/Entity/'
+      - '../src/Kernel.php'
+  App\Controller\GitHubWebhookController:
+    tags: [ 'controller.service_arguments' ]
+    public: true
+  # add more service definitions when explicit configuration is needed
+  # please note that last definitions always *replace* previous ones
+  App\Slack\SlackMessenger:
+    arguments:
+      $slackBotToken: '%env(SLACK_BOT_TOKEN)%'
+      $slackChannel: '%env(SLACK_CHANNEL)%'
 
-    App\Authenticator\SignatureAuthenticator:
-        arguments:
-            $secret: '%env(GITHUB_WEBHOOK_SECRET)%'
+  App\Authenticator\SignatureAuthenticator:
+    arguments:
+      $secret: '%env(GITHUB_WEBHOOK_SECRET)%'
 
-    App\EventListener\GitHubWebhookRequestListener:
-        tags:
-            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }
+  App\PullRequest\GithubPullRequestHandler:
+    arguments: [!tagged 'pr_event_handler']
+
+  App\EventListener\GitHubWebhookRequestListener:
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }
+
+  _instanceof:
+    App\PullRequest\PrEventHandlerInterface:
+      tags: [ 'pr_event_handler' ]

@@ -11,7 +11,7 @@ use App\Transfers\WebHookTransfer;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
-final readonly class ClosePrUseCase
+final readonly class ClosePrUseCase implements PrEventHandlerInterface
 {
     public function __construct(
         private SlackMessageRepositoryInterface $slackMessageRepository,
@@ -40,5 +40,10 @@ final readonly class ClosePrUseCase
         }
 
         $this->logger->info('Slack message updated', ['prNumber' => $webHookTransfer->prNumber]);
+    }
+
+    public function isApplicable(string $action): bool
+    {
+        return $action === 'closed';
     }
 }
