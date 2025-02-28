@@ -8,7 +8,7 @@ use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
 #[ORM\Table(name: "slack_messages")]
-final class SlackMessage
+class SlackMessage
 {
     #[ORM\Id]
     #[ORM\Column(type: "integer")]
