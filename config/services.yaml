@@ -29,6 +29,9 @@ services:
       $slackBotToken: '%env(SLACK_BOT_TOKEN)%'
       $slackChannel: '%env(SLACK_CHANNEL)%'
       $slackMentionTag: '%env(SLACK_MESSAGE_TAG)%'
+      $slackReactionNewPr: '%env(SLACK_EMOJI_NEW_PR)%'
+      $slackReactionMergedPr: '%env(SLACK_EMOJI_PR_MERGE)%'
+      $slackReactionClosedPr: '%env(SLACK_EMOJI_PR_CLOSE)%'
 
   App\Authenticator\SignatureAuthenticator:
     arguments:
