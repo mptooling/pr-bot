@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App\Tests\Unit\Command;
+namespace App\Tests\Unit\Command;
 
 use App\Command\WriteGithubSlackMappingCommand;
 use App\Entity\GitHubSlackMapping;

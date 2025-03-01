@@ -7,6 +7,7 @@ namespace App\Transfers;
 final readonly class WebHookTransfer
 {
     public function __construct(
+        public string $repository,
         public int $prNumber,
         public string $prUrl,
         public string $prAuthor,

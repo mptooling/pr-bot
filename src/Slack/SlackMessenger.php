@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Slack;
 
 use App\Entity\SlackMessage;
+use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Transfers\WebHookTransfer;
 use Override;
 use Psr\Log\LoggerInterface;
@@ -15,6 +16,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
 {
     public function __construct(
         private HttpClientInterface $httpClient,
+        private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository,
         private LoggerInterface $logger,
         private string $slackBotToken,
         private string $slackChannel,
@@ -28,6 +30,13 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     #[Override]
     public function sendNewMessage(WebHookTransfer $webHookTransfer): array
     {
+        $slackMappings = $this->gitHubSlackMappingRepository->findByRepository($webHookTransfer->repository);
+        if (empty($slackMappings)) {
+            $this->logger->error('No slack mappings found for repository', ['repository' => $webHookTransfer->repository]);
+
+            return [];
+        }
+
         $message = $this->composeNewSlackMessage($webHookTransfer);
 
         return $this->post($message);

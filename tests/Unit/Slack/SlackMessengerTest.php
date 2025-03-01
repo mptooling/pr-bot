@@ -2,9 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\App\Tests\Unit;
+namespace App\Tests\Unit\Slack;
 
+use App\Entity\GitHubSlackMapping;
 use App\Entity\SlackMessage;
+use App\Repository\GitHubSlackMappingRepository;
+use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Slack\SlackMessenger;
 use App\Transfers\WebHookTransfer;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -17,14 +20,18 @@ class SlackMessengerTest extends TestCase
 {
     private HttpClientInterface|MockObject $httpClient;
     private LoggerInterface|MockObject $logger;
-    private SlackMessenger|MockObject $slackMessenger;
+    private SlackMessenger $slackMessenger;
+
+    private GitHubSlackMappingRepositoryInterface|MockObject $gitHubSlackMappingRepository;
 
     protected function setUp(): void
     {
         $this->httpClient = $this->createMock(HttpClientInterface::class);
         $this->logger = $this->createMock(LoggerInterface::class);
+        $this->gitHubSlackMappingRepository = $this->createMock(GitHubSlackMappingRepository::class);
         $this->slackMessenger = new SlackMessenger(
             $this->httpClient,
+            $this->gitHubSlackMappingRepository,
             $this->logger,
             'test-slack-bot-token',
             'test-slack-channel',
@@ -33,12 +40,15 @@ class SlackMessengerTest extends TestCase
 
     public function testSendNewMessageSendsCorrectPayload(): void
     {
-        $webHookTransfer = new WebHookTransfer(
-            prNumber: 1,
-            prUrl: 'http://example.com/pr/1',
-            prAuthor: 'author',
-            isMerged: false
-        );
+         // Arrange & Assert
+        $this->gitHubSlackMappingRepository->expects($this->once())
+            ->method('findByRepository')
+            ->with('test-github-repository')
+            ->willReturn(
+                new GitHubSlackMapping()
+                    ->setSlackChannel('test-slack-channel')
+                    ->setRepository('test-github-repository')
+            );
 
         $responseData = [
             'ok' => true,
@@ -71,15 +81,51 @@ class SlackMessengerTest extends TestCase
             )
             ->willReturn($responseMock);
 
+        $webHookTransfer = new WebHookTransfer(
+            repository: 'test-github-repository',
+            prNumber: 1,
+            prUrl: 'http://example.com/pr/1',
+            prAuthor: 'author',
+            isMerged: false
+        );
+
+        // Act
         $result = $this->slackMessenger->sendNewMessage($webHookTransfer);
 
+        // Assert
         $this->assertEquals($expectedResult, $result);
+    }
+
+    public function testSendNewMessageSendsNothingIfNoMappingConfigFound(): void
+    {
+        // Arrange & Assert
+        $this->gitHubSlackMappingRepository->expects($this->once())
+            ->method('findByRepository')
+            ->with('test-github-repository')
+            ->willReturn(null);
+
+        $this->httpClient->expects($this->never())->method('request');
+
+        $webHookTransfer = new WebHookTransfer(
+            repository: 'test-github-repository',
+            prNumber: 1,
+            prUrl: 'http://example.com/pr/1',
+            prAuthor: 'author',
+            isMerged: false
+        );
+
+        // Act
+        $result = $this->slackMessenger->sendNewMessage($webHookTransfer);
+
+        // Assert
+        $this->assertEquals([], $result);
     }
 
     public function testUpdateMessageUpdatesCorrectPayload(): void
     {
         // Arrange & Assert
         $webHookTransfer = new WebHookTransfer(
+            repository: 'test-github-repository',
             prNumber: 1,
             prUrl: 'http://example.com/pr/1',
             prAuthor: 'author',

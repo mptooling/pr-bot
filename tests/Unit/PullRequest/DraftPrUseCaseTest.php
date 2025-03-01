@@ -5,8 +5,7 @@ declare(strict_types=1);
 namespace App\Tests\Unit\PullRequest;
 
 use App\Entity\SlackMessage;
-use App\PullRequest\ClosePrUseCase;
-use App\PullRequest\OpenPrUseCase;
+use App\PullRequest\DraftPrUseCase;
 use App\Repository\SlackMessageRepositoryInterface;
 use App\Slack\SlackMessengerInterface;
 use App\Transfers\WebHookTransfer;
@@ -14,26 +13,29 @@ use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
-class ClosePrUseCaseTest extends TestCase
+class DraftPrUseCaseTest extends TestCase
 {
+    private EntityManagerInterface $entityManager;
+
     private SlackMessageRepositoryInterface $slackMessageRepository;
 
     private SlackMessengerInterface $slackMessenger;
 
-    private ClosePrUseCase $useCase;
+    private DraftPrUseCase $useCase;
 
     protected function setUp(): void
     {
+        $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->slackMessageRepository = $this->createMock(SlackMessageRepositoryInterface::class);
         $this->slackMessenger = $this->createMock(SlackMessengerInterface::class);
-        $this->useCase = new ClosePrUseCase(
+        $this->useCase = new DraftPrUseCase(
+            $this->entityManager,
             $this->slackMessageRepository,
             $this->slackMessenger,
             $this->createMock(LoggerInterface::class)
         );
     }
-
-    public function testHandleDoesNothingIfNoMessageStoredForPrNumber(): void
+    public function testHandleDraftFromScratch(): void
     {
         // Arrange
         $webHookTransfer = new WebHookTransfer(
@@ -49,14 +51,15 @@ class ClosePrUseCaseTest extends TestCase
             ->willReturn(null);
 
         $this->slackMessenger->expects($this->never())
-            ->method('updateMessage');
+            ->method('sendNewMessage');
+        $this->entityManager->expects($this->never())
+            ->method('persist');
 
         // Act
         $this->useCase->handle($webHookTransfer);
     }
 
-
-    public function testHandleSendsMessage(): void
+    public function testHandleDraftPrAfterReadyForReview(): void
     {
         // Arrange
         $webHookTransfer = new WebHookTransfer(
@@ -65,15 +68,22 @@ class ClosePrUseCaseTest extends TestCase
             'testuser'
         );
 
+        $slackMessageEntity = new SlackMessage()->setPrNumber(42)->setTs('12345.6789');
+
         // Assert
         $this->slackMessageRepository->expects($this->once())
             ->method('findOneByPrNumber')
             ->with(42)
-            ->willReturn(new SlackMessage());
+            ->willReturn($slackMessageEntity);
 
         $this->slackMessenger->expects($this->once())
-            ->method('updateMessage');
+            ->method('removeMessage')
+            ->with($slackMessageEntity)
+            ->willReturn(true);
 
+        $this->entityManager->expects($this->once())
+            ->method('remove')
+            ->with($slackMessageEntity);
 
         // Act
         $this->useCase->handle($webHookTransfer);
