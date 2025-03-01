@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Slack;
 
+use App\Entity\GitHubSlackMapping;
 use App\Entity\SlackMessage;
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Transfers\WebHookTransfer;
@@ -16,11 +17,10 @@ final readonly class SlackMessenger implements SlackMessengerInterface
 {
     public function __construct(
         private HttpClientInterface $httpClient,
-        private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository,
         private LoggerInterface $logger,
         private string $slackBotToken,
         private string $slackChannel,
-        private string $slackMentionTag = '@channel',
+        private bool $withReactions = false,
         private string $slackReactionNewPr = 'rocket',
         private string $slackReactionMergedPr = 'white_check_mark',
         private string $slackReactionClosedPr = 'no_entry_sign',
@@ -28,36 +28,35 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     }
 
     #[Override]
-    public function sendNewMessage(WebHookTransfer $webHookTransfer): array
+    public function sendNewMessage(WebHookTransfer $webHookTransfer, GitHubSlackMapping $slackMapping): array
     {
-        $slackMappings = $this->gitHubSlackMappingRepository->findByRepository($webHookTransfer->repository);
-        if (empty($slackMappings)) {
-            $this->logger->error('No slack mappings found for repository', ['repository' => $webHookTransfer->repository]);
+        $message = $this->composeNewSlackMessage($webHookTransfer, $slackMapping);
 
-            return [];
-        }
-
-        $message = $this->composeNewSlackMessage($webHookTransfer);
-
-        return $this->post($message);
+        return $this->post($message, $slackMapping);
     }
 
     #[Override]
-    public function updateMessage(WebHookTransfer $webHookTransfer, SlackMessage $slackMessage): array
-    {
+    public function updateMessage(
+        WebHookTransfer $webHookTransfer,
+        SlackMessage $slackMessage,
+        GitHubSlackMapping $slackMapping
+    ): array {
         $message = sprintf(
             '[%s] ~%s~',
             $webHookTransfer->isMerged ? 'Merged' : 'Closed',
-            $this->composeNewSlackMessage($webHookTransfer),
+            $this->composeNewSlackMessage($webHookTransfer, $slackMapping),
         );
 
-        $result = $this->post($message, $slackMessage->getTs());
+        $result = $this->post($message, $slackMapping, $slackMessage->getTs());
         if (empty($result)) {
             return [];
         }
 
         $reaction = $webHookTransfer->isMerged ? $this->slackReactionMergedPr : $this->slackReactionClosedPr;
-        $this->addReactionToMessage((string)$slackMessage->getTs(), $reaction);
+
+        if ($this->withReactions) {
+            $this->addReactionToMessage((string)$slackMessage->getTs(), $reaction);
+        }
 
         return $result;
     }
@@ -65,11 +64,11 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     /**
      * @return array<string, string>
      */
-    private function post(string $message, ?string $ts = null): array
+    private function post(string $message, GitHubSlackMapping $slackMapping, ?string $ts = null): array
     {
         $url = 'https://slack.com/api/chat.postMessage';
         $payload = [
-            'channel' => $this->slackChannel,
+            'channel' => $slackMapping->getSlackChannel(),
             'text'    => $message,
         ];
         if ($ts !== null) {
@@ -114,7 +113,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         ];
     }
 
-    public function addReactionToMessage(string $ts, string $emoji): void
+    private function addReactionToMessage(string $ts, string $emoji): void
     {
         try {
             $response = $this->httpClient->request('POST', 'https://slack.com/api/reactions.add', [
@@ -149,7 +148,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         $this->logger->debug('[Add Reaction] Slack response', $data);
     }
 
-    public function removeMessage(SlackMessage $slackMessage): bool
+    public function removeMessage(SlackMessage $slackMessage, GitHubSlackMapping $slackMapping): bool
     {
         try {
             $response = $this->httpClient->request('POST', 'https://slack.com/api/chat.delete', [
@@ -158,8 +157,8 @@ final readonly class SlackMessenger implements SlackMessengerInterface
                     'Content-Type'  => 'application/json',
                 ],
                 'json'    => [
-                    'channel' => $this->slackChannel, // Ensure this is a valid channel ID
-                    'ts'      => $slackMessage->getTs(), // Message timestamp
+                    'channel' => $slackMapping->getSlackChannel(),
+                    'ts'      => $slackMessage->getTs(),
                 ],
             ]);
         } catch (Throwable $throwable) {
@@ -198,16 +197,15 @@ final readonly class SlackMessenger implements SlackMessengerInterface
      *
      * @return string
      */
-    private function composeNewSlackMessage(WebHookTransfer $webHookTransfer): string
+    private function composeNewSlackMessage(WebHookTransfer $webHookTransfer, GitHubSlackMapping $slackMapping): string
     {
-        $message = sprintf(
+        return sprintf(
             ':%s: %s, please review <%s|PR #%s> by %s',
             $this->slackReactionNewPr,
-            $this->slackMentionTag,
+            implode(',', $slackMapping->getMentions()),
             $webHookTransfer->prUrl,
             $webHookTransfer->prNumber,
             $webHookTransfer->prAuthor
         );
-        return $message;
     }
 }
