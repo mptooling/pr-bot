@@ -6,7 +6,6 @@ namespace App\Slack;
 
 use App\Entity\GitHubSlackMapping;
 use App\Entity\SlackMessage;
-use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Transfers\WebHookTransfer;
 use Override;
 use Psr\Log\LoggerInterface;
@@ -19,7 +18,6 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         private HttpClientInterface $httpClient,
         private LoggerInterface $logger,
         private string $slackBotToken,
-        private string $slackChannel,
         private bool $withReactions = false,
         private string $slackReactionNewPr = 'rocket',
         private string $slackReactionMergedPr = 'white_check_mark',
@@ -55,7 +53,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         $reaction = $webHookTransfer->isMerged ? $this->slackReactionMergedPr : $this->slackReactionClosedPr;
 
         if ($this->withReactions) {
-            $this->addReactionToMessage((string)$slackMessage->getTs(), $reaction);
+            $this->addReactionToMessage((string)$slackMessage->getTs(), $reaction, $slackMapping);
         }
 
         return $result;
@@ -113,7 +111,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         ];
     }
 
-    private function addReactionToMessage(string $ts, string $emoji): void
+    private function addReactionToMessage(string $ts, string $emoji, GitHubSlackMapping $slackMapping): void
     {
         try {
             $response = $this->httpClient->request('POST', 'https://slack.com/api/reactions.add', [
@@ -122,7 +120,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
                     'Content-Type'  => 'application/json',
                 ],
                 'json'    => [
-                    'channel' => $this->slackChannel,
+                    'channel' => $slackMapping->getSlackChannel(),
                     'timestamp' => $ts,
                     'name' => $emoji,
                 ],

@@ -6,7 +6,7 @@ This project is a PHP application that handles GitHub webhooks and sends notific
 
 ## Features
 - Listen to GitHub webhooks.
-- Posts message to slack channel when PR is created.
+- Posts message to Slack channel when PR is created.
 - Updates the previous message when PR is closed or merged and adds a reaction to increasing visibility.
 - Removes slack message if PR becomes draft.
 - Customizable Slack mentions and emojis.
@@ -18,11 +18,13 @@ This project is a PHP application that handles GitHub webhooks and sends notific
 - Symfony
 
 Bot Requirements:
-- Channel permissions: invite the bot to the channel to react to messages.
-- Bot permissions: `chan:join`, `chat:write` and `chat:write.public`, `incomming-webhook`, `reaction:read`, `reaction:write`.
+- Channel permissions: invite the bot to the post messages.
+- Bot permissions: `chan:join`, `chat:write` and `chat:write.public`, `incomming-webhook`.
+- If reactions enabled, permissions `reaction:read`, `reaction:write` also must be added to the bot.
 
 ## Installation
 
+### Development/Local
 1. Clone the repository:
     ```sh
     git clone git@github.com:mptooling/pr-bot.git
@@ -38,15 +40,18 @@ Bot Requirements:
     - Copy `.env.dev` to `.env.dev.local` and configure the necessary environment variables.
 
 4. Add real env variables:
-    - `GITHUB_WEBHOOK_SECRET`: The Github signature that signs requests.
-    - `SLACK_BOT_TOKEN`: The Slack bot token to send messages.
-    - `SLACK_CHANNEL`: The Slack channel to send notifications to.
+    - GITHUB_WEBHOOK_SECRET=yoursecret
+    - SLACK_BOT_TOKEN=xoxb-slackbottoken
 
 ## Usage
 
 Run the Symfony server:
     ```sh
     symfony server:start
+    ```
+Add GitHub and Slack data to the database:
+    ```sh
+    php bin/console github-slack-mapping:write owner/remository SLACK_CHANNEL_ID '<@USERID>,<!subteam^GROUPID>'
     ```
 
 ## Testing

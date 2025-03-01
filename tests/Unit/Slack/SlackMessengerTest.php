@@ -29,7 +29,6 @@ class SlackMessengerTest extends TestCase
             $this->httpClient,
             $this->logger,
             slackBotToken: 'test-slack-bot-token',
-            slackChannel: 'test-slack-channel',
             withReactions: true,
         );
     }
