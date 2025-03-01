@@ -27,12 +27,20 @@ final readonly class GitHubWebhookController
         $prNumber = $data['pull_request']['number'] ?? null;
         $prUrl = $data['pull_request']['html_url'] ?? '';
         $prAuthor = $data['pull_request']['user']['login'] ?? '';
+        $repository = $data['repository']['full_name'];
 
         if (!$prNumber) {
             return new JsonResponse(['error' => 'No PR number found'], Response::HTTP_BAD_REQUEST);
         }
 
-        $transfer = new WebHookTransfer($prNumber, $prUrl, $prAuthor, $data['pull_request']['merged'] ?? false);
+        $transfer = new WebHookTransfer(
+            repository: $repository,
+            prNumber: $prNumber,
+            prUrl: $prUrl,
+            prAuthor: $prAuthor,
+            isMerged:  $data['pull_request']['merged'] ?? false
+        );
+
         $this->handler->handle($action, $transfer);
 
         return new JsonResponse("ok");

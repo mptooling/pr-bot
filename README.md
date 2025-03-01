@@ -46,13 +46,13 @@ Bot Requirements:
 ## Usage
 
 Run the Symfony server:
-    ```sh
+ ```sh
     symfony server:start
-    ```
+ ```
 Add GitHub and Slack data to the database:
-    ```sh
+ ```sh
     php bin/console github-slack-mapping:write owner/remository SLACK_CHANNEL_ID '<@USERID>,<!subteam^GROUPID>'
-    ```
+ ```
 
 ## Testing
 ```sh
