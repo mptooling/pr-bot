@@ -22,6 +22,9 @@ class GitHubSlackMapping
     #[ORM\Column(type: "string", length: 255)]
     private string $slackChannel;
 
+    /**
+     * @var list<string>
+     */
     #[ORM\Column(type: "json")]
     private array $mentions = [];
 
@@ -50,10 +53,17 @@ class GitHubSlackMapping
         return $this;
     }
 
+    /**
+     * @return list<string>
+     */
     public function getMentions(): array
     {
         return $this->mentions;
     }
+
+    /**
+     * @param list<string> $mentions
+     */
     public function setMentions(array $mentions): self
     {
         $this->mentions = $mentions;
