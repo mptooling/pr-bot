@@ -9,6 +9,7 @@ use App\Transfers\WebHookTransfer;
 use Override;
 use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
+use Throwable;
 
 final readonly class SlackMessenger implements SlackMessengerInterface
 {
@@ -76,7 +77,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
                 ],
                 'json'    => $payload,
             ]);
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->logger->error('Failed to send message to slack', ['exception' => $throwable->getMessage()]);
 
             return [];
@@ -84,7 +85,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
 
         try {
             $data = $response->toArray();
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->logger->error('Failed to add reaction to slack message', ['exception' => $throwable->getMessage()]);
 
             return [];
@@ -96,7 +97,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
             return [];
         }
 
-        $this->logger->info('Slack response', $data);
+        $this->logger->debug('[Create|Update Message] Slack response', $data);
 
         return [
             'message' => $data['message']['text'],
@@ -113,12 +114,12 @@ final readonly class SlackMessenger implements SlackMessengerInterface
                     'Content-Type'  => 'application/json',
                 ],
                 'json'    => [
-                    'channel' => $this->slackChannel, // Ensure this is a valid channel ID
-                    'timestamp' => $ts, // Message timestamp
-                    'name' => $emoji, // Emoji name without colons, e.g., "rocket"
+                    'channel' => $this->slackChannel,
+                    'timestamp' => $ts,
+                    'name' => $emoji,
                 ],
             ]);
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->logger->error('Failed to add reaction to slack message', ['exception' => $throwable->getMessage()]);
 
             return;
@@ -126,7 +127,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
 
         try {
             $data = $response->toArray();
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->logger->error('Failed to add reaction to slack message', ['exception' => $throwable->getMessage()]);
 
             return;
@@ -135,6 +136,8 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         if (!$data['ok']) {
             $this->logger->error('Failed response from slack', $data);
         }
+
+        $this->logger->debug('[Add Reaction] Slack response', $data);
     }
 
     public function removeMessage(SlackMessage $slackMessage): bool
@@ -150,7 +153,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
                     'ts'      => $slackMessage->getTs(), // Message timestamp
                 ],
             ]);
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->logger->error(
                 'Failed to remove slack message',
                 ['data' => $slackMessage, 'exception' => $throwable->getMessage()]
@@ -161,7 +164,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
 
         try {
             $data = $response->toArray();
-        } catch (\Throwable $throwable) {
+        } catch (Throwable $throwable) {
             $this->logger->error(
                 'Failed to remove slack message',
                 ['data' => $slackMessage, 'exception' => $throwable->getMessage()]
@@ -175,6 +178,8 @@ final readonly class SlackMessenger implements SlackMessengerInterface
 
             return false;
         }
+
+        $this->logger->debug('[Remove Message] Slack response', $data);
 
         return true;
     }
