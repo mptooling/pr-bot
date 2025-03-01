@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\PullRequest;
 
+use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
 use App\Slack\SlackMessengerInterface;
 use App\Transfers\WebHookTransfer;
@@ -15,6 +16,7 @@ final readonly class DraftPrUseCase implements PrEventHandlerInterface
     public function __construct(
         private EntityManagerInterface $entityManager,
         private SlackMessageRepositoryInterface $slackMessageRepository,
+        private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository,
         private SlackMessengerInterface $slackMessenger,
         private LoggerInterface $logger,
     ) {
@@ -29,10 +31,17 @@ final readonly class DraftPrUseCase implements PrEventHandlerInterface
     {
         $slackMessage = $this->slackMessageRepository->findOneByPrNumber($webHookTransfer->prNumber);
         if ($slackMessage === null) {
-            return; // Do nothing if the slackMessage is not found
+            return;
         }
 
-        $isRemoved = $this->slackMessenger->removeMessage($slackMessage);
+        $slackMapping = $this->gitHubSlackMappingRepository->findByRepository($webHookTransfer->repository);
+        if ($slackMapping === null) {
+            $this->logger->error('Slack mapping not found', ['repository' => $webHookTransfer->repository]);
+
+            return;
+        }
+
+        $isRemoved = $this->slackMessenger->removeMessage($slackMessage, $slackMapping);
         if (!$isRemoved) {
             return;
         }

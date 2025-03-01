@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\PullRequest;
 
 use App\Entity\SlackMessage;
+use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
 use App\Slack\SlackMessengerInterface;
 use App\Transfers\WebHookTransfer;
@@ -16,6 +17,7 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
     public function __construct(
         private EntityManagerInterface $entityManager,
         private SlackMessageRepositoryInterface $slackMessageRepository,
+        private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository,
         private SlackMessengerInterface $slackMessenger,
         private LoggerInterface $logger,
     ) {
@@ -30,7 +32,14 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
             return;
         }
 
-        $slackResponse = $this->slackMessenger->sendNewMessage($webHookTransfer);
+        $slackMapping = $this->gitHubSlackMappingRepository->findByRepository($webHookTransfer->repository);
+        if ($slackMapping === null) {
+            $this->logger->error('Slack mapping not found', ['repository' => $webHookTransfer->repository]);
+
+            return;
+        }
+
+        $slackResponse = $this->slackMessenger->sendNewMessage($webHookTransfer, $slackMapping);
         if (!isset($slackResponse['ts'])) {
             $this->logger->error('Slack message not sent', [
                 'prNumber' => $webHookTransfer->prNumber,
