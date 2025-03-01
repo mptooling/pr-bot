@@ -8,9 +8,10 @@ use App\PullRequest\GithubPullRequestHandler;
 use App\Transfers\WebHookTransfer;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-final class GitHubWebhookController
+final readonly class GitHubWebhookController
 {
     public function __construct(
         private GithubPullRequestHandler $handler,
@@ -28,7 +29,7 @@ final class GitHubWebhookController
         $prAuthor = $data['pull_request']['user']['login'] ?? '';
 
         if (!$prNumber) {
-            return new JsonResponse(['error' => 'No PR number found'], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['error' => 'No PR number found'], Response::HTTP_BAD_REQUEST);
         }
 
         $transfer = new WebHookTransfer($prNumber, $prUrl, $prAuthor, $data['pull_request']['merged'] ?? false);
