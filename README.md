@@ -54,6 +54,12 @@ Run the Symfony server:
 php bin/phpunit
 ```
 
+## Linters
+Run code static analysis, code style linters and tests with built-in composer scripts:
+```sh
+  composer cs-check
+```
+
 ## TODO
 - Wait until CI is green before posting the message.
 
