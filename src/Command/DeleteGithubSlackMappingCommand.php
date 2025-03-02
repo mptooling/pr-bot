@@ -20,7 +20,7 @@ Remove a GitHub repository-to-Slack mapping from the database.
 Use this command to delete a mapping when it's no longer needed.
 EOF
 )]
-class DeleteGithubSlackMappingCommand extends Command
+final class DeleteGithubSlackMappingCommand extends Command
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,

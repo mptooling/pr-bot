@@ -20,7 +20,7 @@ the originating repository event.
 If repository mapping already exists, it will be updated.
 EOF
 )]
-class WriteGithubSlackMappingCommand extends Command
+final class WriteGithubSlackMappingCommand extends Command
 {
     public function __construct(
         private readonly EntityManagerInterface $entityManager,

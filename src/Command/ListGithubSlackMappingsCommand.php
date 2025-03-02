@@ -18,7 +18,7 @@ Display all GitHub repository-to-Slack mappings.
 This command provides an overview of configured mappings, including repositories, Slack channels, and mentions.
 EOF
 )]
-class ListGithubSlackMappingsCommand extends Command
+final class ListGithubSlackMappingsCommand extends Command
 {
     public function __construct(
         private readonly GitHubSlackMappingRepositoryInterface $repository
