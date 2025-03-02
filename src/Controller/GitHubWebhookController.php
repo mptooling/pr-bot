@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\PullRequest\GithubPullRequestHandler;
 use App\Transfers\WebHookTransfer;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -15,6 +16,7 @@ final readonly class GitHubWebhookController
 {
     public function __construct(
         private GithubPullRequestHandler $handler,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -32,6 +34,8 @@ final readonly class GitHubWebhookController
         if (!$prNumber) {
             return new JsonResponse(['error' => 'No PR number found'], Response::HTTP_BAD_REQUEST);
         }
+
+        $this->logger->debug('Received webhook', $data);
 
         $transfer = new WebHookTransfer(
             repository: $repository,
