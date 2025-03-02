@@ -2,3 +2,5 @@ parameters:
     level: 8
     paths:
         - src/
+    ignoreErrors:
+        - '#Property App\\Entity\\GitHubSlackMapping::\$id \(int\|null\) is never assigned int so it can be removed#'

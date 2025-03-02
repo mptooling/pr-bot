@@ -70,6 +70,15 @@
         ],
         "post-update-cmd": [
             "@auto-scripts"
+        ],
+        "stan": "vendor/bin/phpstan analyse --memory-limit=1G",
+        "test": "bin/phpunit",
+        "style-check": "vendor/bin/phpcs",
+        "style-fix": "vendor/bin/phpcbf",
+        "checks": [
+            "@test",
+            "@stan",
+            "@style-check"
         ]
     },
     "conflict": {

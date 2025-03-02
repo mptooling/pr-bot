@@ -4,19 +4,21 @@ declare(strict_types=1);
 
 namespace App\Tests\Unit\PullRequest;
 
+use App\Entity\GitHubSlackMapping;
 use App\Entity\SlackMessage;
 use App\PullRequest\ClosePrUseCase;
-use App\PullRequest\OpenPrUseCase;
+use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
 use App\Slack\SlackMessengerInterface;
 use App\Transfers\WebHookTransfer;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 class ClosePrUseCaseTest extends TestCase
 {
     private SlackMessageRepositoryInterface $slackMessageRepository;
+
+    private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository;
 
     private SlackMessengerInterface $slackMessenger;
 
@@ -26,8 +28,10 @@ class ClosePrUseCaseTest extends TestCase
     {
         $this->slackMessageRepository = $this->createMock(SlackMessageRepositoryInterface::class);
         $this->slackMessenger = $this->createMock(SlackMessengerInterface::class);
+        $this->gitHubSlackMappingRepository = $this->createMock(GitHubSlackMappingRepositoryInterface::class);
         $this->useCase = new ClosePrUseCase(
             $this->slackMessageRepository,
+            $this->gitHubSlackMappingRepository,
             $this->slackMessenger,
             $this->createMock(LoggerInterface::class)
         );
@@ -37,15 +41,44 @@ class ClosePrUseCaseTest extends TestCase
     {
         // Arrange
         $webHookTransfer = new WebHookTransfer(
-            42,
-            'https://github.com/example/repo/pull/42',
-            'testuser'
+            repository: 'example/repo',
+            prNumber: 42,
+            prUrl: 'https://github.com/example/repo/pull/42',
+            prAuthor: 'testuser'
         );
 
         // Assert
         $this->slackMessageRepository->expects($this->once())
             ->method('findOneByPrNumber')
             ->with(42)
+            ->willReturn(null);
+
+        $this->gitHubSlackMappingRepository->expects($this->never())->method('findByRepository');
+
+        $this->slackMessenger->expects($this->never())
+            ->method('updateMessage');
+
+        // Act
+        $this->useCase->handle($webHookTransfer);
+    }
+
+    public function testHandleDoesNothingIfNoSlackMappingFound(): void
+    {
+        // Arrange & Assert
+        $webHookTransfer = new WebHookTransfer(
+            repository: 'example/repo',
+            prNumber: 42,
+            prUrl: 'https://github.com/example/repo/pull/42',
+            prAuthor: 'testuser'
+        );
+
+        $this->slackMessageRepository->expects($this->once())
+            ->method('findOneByPrNumber')
+            ->with(42)
+            ->willReturn(new SlackMessage());
+
+        $this->gitHubSlackMappingRepository->expects($this->once())
+            ->method('findByRepository')
             ->willReturn(null);
 
         $this->slackMessenger->expects($this->never())
@@ -55,14 +88,14 @@ class ClosePrUseCaseTest extends TestCase
         $this->useCase->handle($webHookTransfer);
     }
 
-
     public function testHandleSendsMessage(): void
     {
         // Arrange
         $webHookTransfer = new WebHookTransfer(
-            42,
-            'https://github.com/example/repo/pull/42',
-            'testuser'
+            repository: 'example/repo',
+            prNumber: 42,
+            prUrl: 'https://github.com/example/repo/pull/42',
+            prAuthor: 'testuser'
         );
 
         // Assert
@@ -71,9 +104,17 @@ class ClosePrUseCaseTest extends TestCase
             ->with(42)
             ->willReturn(new SlackMessage());
 
+        $gitHubSlackMapping = new GitHubSlackMapping()
+            ->setSlackChannel('test-slack-channel')
+            ->setRepository('test-github-repository')
+            ->setMentions(['<!subtram^S12345678>']);
+
+        $this->gitHubSlackMappingRepository->expects($this->once())
+            ->method('findByRepository')
+            ->willReturn($gitHubSlackMapping);
+
         $this->slackMessenger->expects($this->once())
             ->method('updateMessage');
-
 
         // Act
         $this->useCase->handle($webHookTransfer);

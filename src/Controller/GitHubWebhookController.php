@@ -6,14 +6,17 @@ namespace App\Controller;
 
 use App\PullRequest\GithubPullRequestHandler;
 use App\Transfers\WebHookTransfer;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Attribute\Route;
 
-final class GitHubWebhookController
+final readonly class GitHubWebhookController
 {
     public function __construct(
         private GithubPullRequestHandler $handler,
+        private LoggerInterface $logger,
     ) {
     }
 
@@ -26,12 +29,22 @@ final class GitHubWebhookController
         $prNumber = $data['pull_request']['number'] ?? null;
         $prUrl = $data['pull_request']['html_url'] ?? '';
         $prAuthor = $data['pull_request']['user']['login'] ?? '';
+        $repository = $data['repository']['full_name'];
 
         if (!$prNumber) {
-            return new JsonResponse(['error' => 'No PR number found'], JsonResponse::HTTP_BAD_REQUEST);
+            return new JsonResponse(['error' => 'No PR number found'], Response::HTTP_BAD_REQUEST);
         }
 
-        $transfer = new WebHookTransfer($prNumber, $prUrl, $prAuthor, $data['pull_request']['merged'] ?? false);
+        $this->logger->debug('Received webhook', $data);
+
+        $transfer = new WebHookTransfer(
+            repository: $repository,
+            prNumber: $prNumber,
+            prUrl: $prUrl,
+            prAuthor: $prAuthor,
+            isMerged:  $data['pull_request']['merged'] ?? false
+        );
+
         $this->handler->handle($action, $transfer);
 
         return new JsonResponse("ok");
