@@ -14,7 +14,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
 
 #[AsCommand(
-    name: 'github-slack-mapping:delete',
+    name: 'gsm:delete',
     description: <<<'EOF'
 Remove a GitHub repository-to-Slack mapping from the database.
 Use this command to delete a mapping when it's no longer needed.

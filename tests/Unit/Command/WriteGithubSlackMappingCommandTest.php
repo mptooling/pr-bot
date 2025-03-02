@@ -28,7 +28,7 @@ class WriteGithubSlackMappingCommandTest extends TestCase
         $application = new Application();
         $application->add($command);
 
-        $this->commandTester = new CommandTester($application->find('github-slack-mapping:write'));
+        $this->commandTester = new CommandTester($application->find('gsm:write'));
     }
 
     public function testExecuteWithNewMapping(): void

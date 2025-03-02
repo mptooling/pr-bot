@@ -28,7 +28,7 @@ class DeleteGithubSlackMappingCommandTest extends TestCase
         $application = new Application();
         $application->add($command);
 
-        $this->commandTester = new CommandTester($application->find('github-slack-mapping:delete'));
+        $this->commandTester = new CommandTester($application->find('gsm:delete'));
     }
 
     public function testDeletesMappingSuccessfully(): void

@@ -51,7 +51,7 @@ Run the Symfony server:
  ```
 Add GitHub and Slack data to the database:
  ```sh
-    php bin/console github-slack-mapping:write owner/remository SLACK_CHANNEL_ID '<@USERID>,<!subteam^GROUPID>'
+    php bin/console gsm:write owner/remository SLACK_CHANNEL_ID '<@USERID>,<!subteam^GROUPID>'
  ```
 
 ## Testing

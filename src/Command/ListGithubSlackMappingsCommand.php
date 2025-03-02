@@ -12,7 +12,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'github-slack-mapping:list',
+    name: 'gsm:list',
     description: <<<'EOF'
 Display all GitHub repository-to-Slack mappings.
 This command provides an overview of configured mappings, including repositories, Slack channels, and mentions.

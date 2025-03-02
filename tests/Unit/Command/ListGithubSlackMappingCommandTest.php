@@ -25,7 +25,7 @@ class ListGithubSlackMappingCommandTest extends TestCase
         $application = new Application();
         $application->add($command);
 
-        $this->commandTester = new CommandTester($application->find('github-slack-mapping:list'));
+        $this->commandTester = new CommandTester($application->find('gsm:list'));
     }
 
     public function testDisplaysNoMappingsFoundWhenRepositoryIsEmpty(): void

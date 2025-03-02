@@ -12,7 +12,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'github-slack-mapping:write',
+    name: 'gsm:write',
     description: <<<'EOF'
 Add a new GitHub repository-to-slack mapping.
 This configuration ensures that the application directs messages to the correct Slack channel based on 
