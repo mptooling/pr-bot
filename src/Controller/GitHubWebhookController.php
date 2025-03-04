@@ -25,9 +25,9 @@ final readonly class GitHubWebhookController
     {
         // Parse JSON
         $data = json_decode($request->getContent(), true);
-        $action = $data['action'] ?? null;
-        $prNumber = $data['pull_request']['number'] ?? null;
-        $prTitle = $data['pull_request']['title'] ?? null;
+        $action = $data['action'] ?? '';
+        $prNumber = $data['pull_request']['number'] ?? 0;
+        $prTitle = $data['pull_request']['title'] ?? '';
         $prUrl = $data['pull_request']['html_url'] ?? '';
         $prAuthor = $data['pull_request']['user']['login'] ?? '';
         $repository = $data['repository']['full_name'];
