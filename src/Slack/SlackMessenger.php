@@ -198,11 +198,12 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     private function composeNewSlackMessage(WebHookTransfer $webHookTransfer, GitHubSlackMapping $slackMapping): string
     {
         return sprintf(
-            ':%s: %s, please review <%s|PR #%s> by %s',
+            ':%s: %s, please review <%s|PR #%d: %s> by %s',
             $this->slackReactionNewPr,
             implode(',', $slackMapping->getMentions()),
             $webHookTransfer->prUrl,
             $webHookTransfer->prNumber,
+            $webHookTransfer->prTitle,
             $webHookTransfer->prAuthor
         );
     }
