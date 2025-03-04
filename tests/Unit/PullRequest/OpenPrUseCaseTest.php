@@ -48,6 +48,7 @@ class OpenPrUseCaseTest extends TestCase
         $webHookTransfer = new WebHookTransfer(
             repository: 'example/repo',
             prNumber: 42,
+            prTitle: 'The title',
             prUrl: 'https://github.com/example/repo/pull/42',
             prAuthor: 'testuser'
         );
@@ -75,6 +76,7 @@ class OpenPrUseCaseTest extends TestCase
         $webHookTransfer = new WebHookTransfer(
             repository: 'example/repo',
             prNumber: 42,
+            prTitle: 'The title',
             prUrl: 'https://github.com/example/repo/pull/42',
             prAuthor: 'testuser'
         );
@@ -104,6 +106,7 @@ class OpenPrUseCaseTest extends TestCase
         $webHookTransfer = new WebHookTransfer(
             repository: 'example/repo',
             prNumber: 42,
+            prTitle: 'The title',
             prUrl: 'https://github.com/example/repo/pull/42',
             prAuthor: 'testuser'
         );
@@ -141,6 +144,7 @@ class OpenPrUseCaseTest extends TestCase
         $webHookTransfer = new WebHookTransfer(
             repository: 'example/repo',
             prNumber: 42,
+            prTitle: 'The title',
             prUrl: 'https://github.com/example/repo/pull/42',
             prAuthor: 'testuser'
         );

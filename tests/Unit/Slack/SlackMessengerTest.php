@@ -61,6 +61,7 @@ class SlackMessengerTest extends TestCase
         $webHookTransfer = new WebHookTransfer(
             repository: 'test-github-repository',
             prNumber: 1,
+            prTitle: 'The title',
             prUrl: 'http://example.com/pr/1',
             prAuthor: 'author',
             isMerged: false
@@ -84,6 +85,7 @@ class SlackMessengerTest extends TestCase
         $webHookTransfer = new WebHookTransfer(
             repository: 'test-github-repository',
             prNumber: 1,
+            prTitle: 'The title',
             prUrl: 'http://example.com/pr/1',
             prAuthor: 'author',
             isMerged: true
