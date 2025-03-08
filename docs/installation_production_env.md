@@ -52,3 +52,12 @@ composer install --no-dev --optimize-autoloader
 ### Configure message routing
 
 Please, read [configuring application notifications](configuring.md) for more information.
+
+### Dump env configuration
+```bash
+php composer dump-env prod
+```
+
+This will create a `.env.local.php` file with the configuration for the production environment.
+
+For more info, please read [official documentation](https://symfony.com/doc/current/configuration.html#configuring-environment-variables-in-production).
