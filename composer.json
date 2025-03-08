@@ -75,7 +75,7 @@
         "test": "bin/phpunit",
         "style-check": "vendor/bin/phpcs",
         "style-fix": "vendor/bin/phpcbf",
-        "checks": [
+        "check": [
             "@test",
             "@stan",
             "@style-check"
