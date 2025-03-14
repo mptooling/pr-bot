@@ -29,7 +29,11 @@ final readonly class DraftPrUseCase implements PrEventHandlerInterface
 
     public function handle(WebHookTransfer $webHookTransfer): void
     {
-        $slackMessage = $this->slackMessageRepository->findOneByPrNumber($webHookTransfer->prNumber);
+        $slackMessage = $this->slackMessageRepository->findOneByPrNumberAndRepository(
+            $webHookTransfer->prNumber,
+            $webHookTransfer->repository,
+        );
+
         if ($slackMessage === null) {
             return;
         }

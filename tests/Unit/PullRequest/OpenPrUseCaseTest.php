@@ -49,13 +49,13 @@ class OpenPrUseCaseTest extends TestCase
             repository: 'example/repo',
             prNumber: 42,
             prTitle: 'The title',
-            prUrl: 'https://github.com/example/repo/pull/42',
+            prUrl: 'https://github.com/example/rzepo/pull/42',
             prAuthor: 'testuser'
         );
 
         $this->slackMessageRepository->expects($this->once())
-            ->method('findOneByPrNumber')
-            ->with(42)
+            ->method('findOneByPrNumberAndRepository')
+            ->with(42, 'example/repo')
             ->willReturn(new SlackMessage());
 
         $this->gitHubSlackMappingRepository->expects($this->never()) ->method('findByRepository');
@@ -82,8 +82,8 @@ class OpenPrUseCaseTest extends TestCase
         );
 
         $this->slackMessageRepository->expects($this->once())
-            ->method('findOneByPrNumber')
-            ->with(42)
+            ->method('findOneByPrNumberAndRepository')
+            ->with(42, 'example/repo')
             ->willReturn(null);
 
         $this->gitHubSlackMappingRepository->expects($this->once())
@@ -113,8 +113,8 @@ class OpenPrUseCaseTest extends TestCase
 
         // Assert
         $this->slackMessageRepository->expects($this->once())
-            ->method('findOneByPrNumber')
-            ->with(42)
+            ->method('findOneByPrNumberAndRepository')
+            ->with(42, 'example/repo')
             ->willReturn(null);
 
         $gitHubSlackMapping = new GitHubSlackMapping()

@@ -8,5 +8,5 @@ use App\Entity\SlackMessage;
 
 interface SlackMessageRepositoryInterface
 {
-    public function findOneByPrNumber(int $prNumber): ?SlackMessage;
+    public function findOneByPrNumberAndRepository(int $prNumber, string $repository): ?SlackMessage;
 }

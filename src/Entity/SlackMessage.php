@@ -17,6 +17,9 @@ class SlackMessage
     #[ORM\Column(type: "string", length: 255)]
     private ?string $ts = null;
 
+    #[ORM\Column(type: "string", length: 255)]
+    private ?string $ghRepository = null;
+
     public function getPrNumber(): ?int
     {
         return $this->prNumber;
@@ -37,6 +40,18 @@ class SlackMessage
     public function setTs(?string $ts): self
     {
         $this->ts = $ts;
+
+        return $this;
+    }
+
+    public function getGhRepository(): ?string
+    {
+        return $this->ghRepository;
+    }
+
+    public function setGhRepository(?string $ghRepository): self
+    {
+        $this->ghRepository = $ghRepository;
 
         return $this;
     }
