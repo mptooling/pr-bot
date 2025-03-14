@@ -54,8 +54,8 @@ class DraftPrUseCaseTest extends TestCase
 
         // Assert
         $this->slackMessageRepository->expects($this->once())
-            ->method('findOneByPrNumber')
-            ->with(42)
+            ->method('findOneByPrNumberAndRepository')
+            ->with(42, 'example/repo')
             ->willReturn(null);
 
         $this->gitHubSlackMappingRepository->expects($this->never())->method('findByRepository');
@@ -82,8 +82,8 @@ class DraftPrUseCaseTest extends TestCase
 
         // Assert
         $this->slackMessageRepository->expects($this->once())
-            ->method('findOneByPrNumber')
-            ->with(42)
+            ->method('findOneByPrNumberAndRepository')
+            ->with(42, 'example/repo')
             ->willReturn(new SlackMessage());
 
         $this->gitHubSlackMappingRepository->expects($this->once())
@@ -114,8 +114,8 @@ class DraftPrUseCaseTest extends TestCase
 
         // Assert
         $this->slackMessageRepository->expects($this->once())
-            ->method('findOneByPrNumber')
-            ->with(42)
+            ->method('findOneByPrNumberAndRepository')
+            ->with(42, 'example/repo')
             ->willReturn($slackMessageEntity);
 
         $gitHubSlackMapping = new GitHubSlackMapping()

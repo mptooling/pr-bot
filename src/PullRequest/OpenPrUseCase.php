@@ -25,7 +25,10 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
 
     public function handle(WebHookTransfer $webHookTransfer): void
     {
-        $message = $this->slackMessageRepository->findOneByPrNumber($webHookTransfer->prNumber);
+        $message = $this->slackMessageRepository->findOneByPrNumberAndRepository(
+            $webHookTransfer->prNumber,
+            $webHookTransfer->repository,
+        );
         if ($message !== null) {
             $this->logger->info('Message already sent', ['prNumber' => $webHookTransfer->prNumber]);
 
@@ -51,6 +54,7 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
 
         $entity = new SlackMessage();
         $entity->setPrNumber($webHookTransfer->prNumber)
+            ->setGhRepository($webHookTransfer->repository)
             ->setTs($slackResponse['ts']);
 
         $this->entityManager->persist($entity);

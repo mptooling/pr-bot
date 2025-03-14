@@ -24,7 +24,10 @@ final readonly class ClosePrUseCase implements PrEventHandlerInterface
 
     public function handle(WebHookTransfer $webHookTransfer): void
     {
-        $slackMessage = $this->slackMessageRepository->findOneByPrNumber($webHookTransfer->prNumber);
+        $slackMessage = $this->slackMessageRepository->findOneByPrNumberAndRepository(
+            $webHookTransfer->prNumber,
+            $webHookTransfer->repository,
+        );
         if (!$slackMessage) {
             $this->logger->error('No message found', ['prNumber' => $webHookTransfer->prNumber]);
 

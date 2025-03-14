@@ -18,8 +18,11 @@ final class SlackMessageRepository extends ServiceEntityRepository implements Sl
         parent::__construct($registry, SlackMessage::class);
     }
 
-    public function findOneByPrNumber(int $prNumber): ?SlackMessage
+    public function findOneByPrNumberAndRepository(int $prNumber, string $repository): ?SlackMessage
     {
-        return $this->findOneBy(['prNumber' => $prNumber]);
+        return $this->findOneBy([
+            'prNumber' => $prNumber,
+            'ghRepository' => $repository,
+        ]);
     }
 }
