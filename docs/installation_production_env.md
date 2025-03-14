@@ -22,6 +22,12 @@ for the most up-to-date configuration.
 
 Please refer to the [official Composer documentation](https://getcomposer.org/doc/00-intro.md#installation-linux-unix-macos)
 
+### Install Project
+```sh
+git clone git@github.com:mptooling/pr-bot.git
+cd cd pr-bot
+```
+
 ### Setup env variables
 
 Configure general env variables in the `.env.prod` file:
