@@ -4,19 +4,16 @@ declare(strict_types=1);
 
 namespace App\PullRequest;
 
-use App\Entity\SlackMessage;
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
 use App\Slack\SlackApiClient;
 use App\Slack\SlackMessageComposer;
 use App\Transfers\WebHookTransfer;
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
 final readonly class OpenPrUseCase implements PrEventHandlerInterface
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
         private SlackMessageRepositoryInterface $slackMessageRepository,
         private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository,
         private LoggerInterface $logger,
@@ -55,13 +52,11 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
             return;
         }
 
-        $entity = new SlackMessage(); // todo :: move to repository
-        $entity->setPrNumber($webHookTransfer->prNumber)
-            ->setGhRepository($webHookTransfer->repository)
-            ->setTs($slackResponse->slackMessageId);
-
-        $this->entityManager->persist($entity);
-        $this->entityManager->flush();
+        $this->slackMessageRepository->saveSlackMessage(
+            $webHookTransfer->prNumber,
+            $webHookTransfer->repository,
+            (string) $slackResponse->slackMessageId,
+        );
 
         $this->logger->info('Slack message sent', ['prNumber' => $webHookTransfer->prNumber]);
     }

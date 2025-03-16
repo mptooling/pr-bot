@@ -11,17 +11,13 @@ use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
 use App\Slack\SlackApiClient;
 use App\Slack\SlackMessageComposer;
-use App\Slack\SlackMessengerInterface;
 use App\Slack\SlackResponse;
 use App\Transfers\WebHookTransfer;
-use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 class OpenPrUseCaseTest extends TestCase
 {
-    private EntityManagerInterface $entityManager;
-
     private SlackMessageRepositoryInterface $slackMessageRepository;
 
     private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository;
@@ -34,13 +30,11 @@ class OpenPrUseCaseTest extends TestCase
 
     protected function setUp(): void
     {
-        $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->slackMessageRepository = $this->createMock(SlackMessageRepositoryInterface::class);
         $this->gitHubSlackMappingRepository = $this->createMock(GitHubSlackMappingRepositoryInterface::class);
         $this->slackMessageComposer = $this->createMock(SlackMessageComposer::class);
         $this->slackMessenger = $this->createMock(SlackApiClient::class);
         $this->useCase = new OpenPrUseCase(
-            $this->entityManager,
             $this->slackMessageRepository,
             $this->gitHubSlackMappingRepository,
             $this->createMock(LoggerInterface::class),
@@ -67,11 +61,14 @@ class OpenPrUseCaseTest extends TestCase
 
         $this->gitHubSlackMappingRepository->expects($this->never()) ->method('findByRepository');
 
+        $this->slackMessageComposer->expects($this->never())
+            ->method('composeNewSlackMessage');
+
         $this->slackMessenger->expects($this->never())
             ->method('postChatMessage');
 
-        $this->entityManager->expects($this->never())
-            ->method('persist');
+        $this->slackMessageRepository->expects($this->never())
+            ->method('saveSlackMessage');
 
         // Act
         $this->useCase->handle($webHookTransfer);
@@ -97,11 +94,14 @@ class OpenPrUseCaseTest extends TestCase
             ->method('findByRepository')
             ->willReturn(null);
 
+        $this->slackMessageComposer->expects($this->never())
+            ->method('composeNewSlackMessage');
+
         $this->slackMessenger->expects($this->never())
             ->method('postChatMessage');
 
-        $this->entityManager->expects($this->never())
-            ->method('persist');
+        $this->slackMessageRepository->expects($this->never())
+            ->method('saveSlackMessage');
 
         // Act
         $this->useCase->handle($webHookTransfer);
@@ -133,12 +133,15 @@ class OpenPrUseCaseTest extends TestCase
             ->method('findByRepository')
             ->willReturn($gitHubSlackMapping);
 
+        $this->slackMessageComposer->expects($this->once())
+            ->method('composeNewSlackMessage');
+
         $this->slackMessenger->expects($this->once())
             ->method('postChatMessage')
             ->willReturn(SlackResponse::fail());
 
-        $this->entityManager->expects($this->never())
-            ->method('persist');
+        $this->slackMessageRepository->expects($this->never())
+            ->method('saveSlackMessage');
 
         // Act
         $this->useCase->handle($webHookTransfer);
@@ -165,15 +168,15 @@ class OpenPrUseCaseTest extends TestCase
             ->method('findByRepository')
             ->willReturn($gitHubSlackMapping);
 
+        $this->slackMessageComposer->expects($this->once())
+            ->method('composeNewSlackMessage');
+
         $this->slackMessenger->expects($this->once())
             ->method('postChatMessage')
             ->willReturn(new SlackResponse(slackMessageId: '1234567890'));
 
-        $this->entityManager->expects($this->once())
-            ->method('persist');
-
-        $this->entityManager->expects($this->once())
-            ->method('flush');
+        $this->slackMessageRepository->expects($this->once())
+            ->method('saveSlackMessage');
 
         // Act
         $this->useCase->handle($webHookTransfer);
