@@ -36,7 +36,7 @@ services:
       $secret: '%env(GITHUB_WEBHOOK_SECRET)%'
 
   App\PullRequest\GithubPullRequestHandler:
-    arguments: [ !tagged 'pr_event_handler' ] // todo :: change to !tagged_iterator
+    arguments: [ !tagged_iterator  'pr_event_handler' ]
 
   App\EventListener\GitHubWebhookRequestListener:
     tags:
