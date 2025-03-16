@@ -46,6 +46,7 @@ final readonly class DraftPrUseCase implements PrEventHandlerInterface
         }
 
         $isRemoved = $this->slackMessenger->removeMessage($slackMessage, $slackMapping);
+        // todo :: handle cases when message is not removed from slack because it is not found
         if (!$isRemoved) {
             return;
         }

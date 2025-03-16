@@ -10,6 +10,7 @@ use App\PullRequest\ClosePrUseCase;
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
 use App\Slack\SlackMessengerInterface;
+use App\Slack\SlackResponse;
 use App\Transfers\WebHookTransfer;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -117,7 +118,8 @@ class ClosePrUseCaseTest extends TestCase
             ->willReturn($gitHubSlackMapping);
 
         $this->slackMessenger->expects($this->once())
-            ->method('updateMessage');
+            ->method('updateMessage')
+            ->willReturn(new SlackResponse('1234567890.123456'));
 
         // Act
         $this->useCase->handle($webHookTransfer);

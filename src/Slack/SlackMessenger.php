@@ -59,81 +59,14 @@ final readonly class SlackMessenger implements SlackMessengerInterface
 
     private function addReactionToMessage(string $ts, string $emoji, GitHubSlackMapping $slackMapping): void
     {
-        try {
-            $response = $this->slackApiClient->request('POST', 'https://slack.com/api/reactions.add', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->slackBotToken,
-                    'Content-Type'  => 'application/json',
-                ],
-                'json'    => [
-                    'channel' => $slackMapping->getSlackChannel(),
-                    'timestamp' => $ts,
-                    'name' => $emoji,
-                ],
-            ]);
-        } catch (Throwable $throwable) {
-            $this->logger->error('Failed to add reaction to slack message', ['exception' => $throwable->getMessage()]);
-
-            return;
-        }
-
-        try {
-            $data = $response->toArray();
-        } catch (Throwable $throwable) {
-            $this->logger->error('Failed to add reaction to slack message', ['exception' => $throwable->getMessage()]);
-
-            return;
-        }
-
-        if (!$data['ok']) {
-            $this->logger->error('Failed response from slack', $data);
-        }
-
-        $this->logger->debug('[Add Reaction] Slack response', $data);
+        $this->slackApiClient->addReaction($slackMapping, $ts, $emoji);
     }
 
     public function removeMessage(SlackMessage $slackMessage, GitHubSlackMapping $slackMapping): bool
     {
-        try {
-            $response = $this->slackApiClient->request('POST', 'https://slack.com/api/chat.delete', [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->slackBotToken,
-                    'Content-Type'  => 'application/json',
-                ],
-                'json'    => [
-                    'channel' => $slackMapping->getSlackChannel(),
-                    'ts'      => $slackMessage->getTs(),
-                ],
-            ]);
-        } catch (Throwable $throwable) {
-            $this->logger->error(
-                'Failed to remove slack message',
-                ['data' => $slackMessage, 'exception' => $throwable->getMessage()]
-            );
+        $response = $this->slackApiClient->removeSlackMessage($slackMessage, $slackMapping);
 
-            return false;
-        }
-
-        try {
-            $data = $response->toArray();
-        } catch (Throwable $throwable) {
-            $this->logger->error(
-                'Failed to remove slack message',
-                ['data' => $slackMessage, 'exception' => $throwable->getMessage()]
-            );
-
-            return false;
-        }
-
-        if (!$data['ok']) {
-            $this->logger->error('Failed to remove slack message', $data);
-
-            return false;
-        }
-
-        $this->logger->debug('[Remove Message] Slack response', $data);
-
-        return true;
+        return $response->isSuccessful;
     }
 
     /**
