@@ -27,12 +27,9 @@ services:
     arguments:
       $slackBotToken: '%env(SLACK_BOT_TOKEN)%'
 
-  App\Slack\SlackMessenger:
+  App\Slack\SlackMessageComposer:
     arguments:
-      $withReactions: '%env(bool:SLACK_REACTIONS_ENABLED)%'
       $slackReactionNewPr: '%env(SLACK_REACTION_NEW_PR)%'
-      $slackReactionMergedPr: '%env(SLACK_REACTION_MERGED_PR)%'
-      $slackReactionClosedPr: '%env(SLACK_REACTION_CLOSED_PR)%'
 
   App\Authenticator\SignatureAuthenticator:
     arguments:
@@ -48,3 +45,9 @@ services:
   _instanceof:
     App\PullRequest\PrEventHandlerInterface:
       tags: [ 'pr_event_handler' ]
+
+  App\PullRequest\ClosePrUseCase:
+    arguments:
+      $isReactionsEnabled: '%env(bool:SLACK_REACTIONS_ENABLED)%'
+      $slackReactionMergedPr: '%env(SLACK_REACTION_MERGED_PR)%'
+      $slackReactionClosedPr: '%env(SLACK_REACTION_CLOSED_PR)%'

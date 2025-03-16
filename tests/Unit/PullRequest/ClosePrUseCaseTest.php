@@ -9,7 +9,8 @@ use App\Entity\SlackMessage;
 use App\PullRequest\ClosePrUseCase;
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
-use App\Slack\SlackMessengerInterface;
+use App\Slack\SlackApiClient;
+use App\Slack\SlackMessageComposer;
 use App\Slack\SlackResponse;
 use App\Transfers\WebHookTransfer;
 use PHPUnit\Framework\TestCase;
@@ -21,20 +22,25 @@ class ClosePrUseCaseTest extends TestCase
 
     private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository;
 
-    private SlackMessengerInterface $slackMessenger;
+    private SlackApiClient $slackApiClient;
+
+    private SlackMessageComposer $slackMessageComposer;
 
     private ClosePrUseCase $useCase;
 
     protected function setUp(): void
     {
         $this->slackMessageRepository = $this->createMock(SlackMessageRepositoryInterface::class);
-        $this->slackMessenger = $this->createMock(SlackMessengerInterface::class);
+        $this->slackApiClient = $this->createMock(SlackApiClient::class);
+        $this->slackMessageComposer = $this->createMock(SlackMessageComposer::class);
         $this->gitHubSlackMappingRepository = $this->createMock(GitHubSlackMappingRepositoryInterface::class);
         $this->useCase = new ClosePrUseCase(
             $this->slackMessageRepository,
             $this->gitHubSlackMappingRepository,
-            $this->slackMessenger,
-            $this->createMock(LoggerInterface::class)
+            $this->slackMessageComposer,
+            $this->slackApiClient,
+            $this->createMock(LoggerInterface::class),
+            true,
         );
     }
 
@@ -57,8 +63,12 @@ class ClosePrUseCaseTest extends TestCase
 
         $this->gitHubSlackMappingRepository->expects($this->never())->method('findByRepository');
 
-        $this->slackMessenger->expects($this->never())
-            ->method('updateMessage');
+        $this->slackApiClient->expects($this->never())
+            ->method('updateChatMessage');
+
+        $this->slackApiClient->expects($this->never())
+            ->method('addReaction');
+
 
         // Act
         $this->useCase->handle($webHookTransfer);
@@ -84,8 +94,11 @@ class ClosePrUseCaseTest extends TestCase
             ->method('findByRepository')
             ->willReturn(null);
 
-        $this->slackMessenger->expects($this->never())
-            ->method('updateMessage');
+        $this->slackApiClient->expects($this->never())
+            ->method('updateChatMessage');
+
+        $this->slackApiClient->expects($this->never())
+            ->method('addReaction');
 
         // Act
         $this->useCase->handle($webHookTransfer);
@@ -99,7 +112,8 @@ class ClosePrUseCaseTest extends TestCase
             prNumber: 42,
             prTitle: 'The title',
             prUrl: 'https://github.com/example/repo/pull/42',
-            prAuthor: 'testuser'
+            prAuthor: 'testuser',
+            isMerged: true
         );
 
         // Assert
@@ -117,9 +131,13 @@ class ClosePrUseCaseTest extends TestCase
             ->method('findByRepository')
             ->willReturn($gitHubSlackMapping);
 
-        $this->slackMessenger->expects($this->once())
-            ->method('updateMessage')
+        $this->slackApiClient->expects($this->once())
+            ->method('updateChatMessage')
             ->willReturn(new SlackResponse('1234567890.123456'));
+
+        $this->slackApiClient->expects($this->once())
+            ->method('addReaction')
+            ->willReturn(new SlackResponse());
 
         // Act
         $this->useCase->handle($webHookTransfer);

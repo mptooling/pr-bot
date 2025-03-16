@@ -9,6 +9,8 @@ use App\Entity\SlackMessage;
 use App\PullRequest\OpenPrUseCase;
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
+use App\Slack\SlackApiClient;
+use App\Slack\SlackMessageComposer;
 use App\Slack\SlackMessengerInterface;
 use App\Slack\SlackResponse;
 use App\Transfers\WebHookTransfer;
@@ -24,7 +26,9 @@ class OpenPrUseCaseTest extends TestCase
 
     private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository;
 
-    private SlackMessengerInterface $slackMessenger;
+    private SlackMessageComposer $slackMessageComposer;
+
+    private SlackApiClient $slackMessenger;
 
     private OpenPrUseCase $useCase;
 
@@ -33,13 +37,15 @@ class OpenPrUseCaseTest extends TestCase
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->slackMessageRepository = $this->createMock(SlackMessageRepositoryInterface::class);
         $this->gitHubSlackMappingRepository = $this->createMock(GitHubSlackMappingRepositoryInterface::class);
-        $this->slackMessenger = $this->createMock(SlackMessengerInterface::class);
+        $this->slackMessageComposer = $this->createMock(SlackMessageComposer::class);
+        $this->slackMessenger = $this->createMock(SlackApiClient::class);
         $this->useCase = new OpenPrUseCase(
             $this->entityManager,
             $this->slackMessageRepository,
             $this->gitHubSlackMappingRepository,
+            $this->createMock(LoggerInterface::class),
+            $this->slackMessageComposer,
             $this->slackMessenger,
-            $this->createMock(LoggerInterface::class)
         );
     }
 
@@ -62,7 +68,7 @@ class OpenPrUseCaseTest extends TestCase
         $this->gitHubSlackMappingRepository->expects($this->never()) ->method('findByRepository');
 
         $this->slackMessenger->expects($this->never())
-            ->method('sendNewMessage');
+            ->method('postChatMessage');
 
         $this->entityManager->expects($this->never())
             ->method('persist');
@@ -92,7 +98,7 @@ class OpenPrUseCaseTest extends TestCase
             ->willReturn(null);
 
         $this->slackMessenger->expects($this->never())
-            ->method('sendNewMessage');
+            ->method('postChatMessage');
 
         $this->entityManager->expects($this->never())
             ->method('persist');
@@ -128,7 +134,7 @@ class OpenPrUseCaseTest extends TestCase
             ->willReturn($gitHubSlackMapping);
 
         $this->slackMessenger->expects($this->once())
-            ->method('sendNewMessage')
+            ->method('postChatMessage')
             ->willReturn(SlackResponse::fail());
 
         $this->entityManager->expects($this->never())
@@ -160,7 +166,7 @@ class OpenPrUseCaseTest extends TestCase
             ->willReturn($gitHubSlackMapping);
 
         $this->slackMessenger->expects($this->once())
-            ->method('sendNewMessage')
+            ->method('postChatMessage')
             ->willReturn(new SlackResponse(slackMessageId: '1234567890'));
 
         $this->entityManager->expects($this->once())
