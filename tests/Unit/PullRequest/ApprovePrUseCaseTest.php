@@ -9,7 +9,8 @@ use App\Entity\SlackMessage;
 use App\PullRequest\ApprovePrUseCase;
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
-use App\Slack\SlackMessengerInterface;
+use App\Slack\SlackApiClient;
+use App\Slack\SlackResponse;
 use App\Transfers\WebHookTransfer;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
@@ -20,19 +21,19 @@ class ApprovePrUseCaseTest extends TestCase
 
     private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository;
 
-    private SlackMessengerInterface $slackMessenger;
+    private SlackApiClient $slackApiClient;
 
     private ApprovePrUseCase $useCase;
 
     protected function setUp(): void
     {
         $this->slackMessageRepository = $this->createMock(SlackMessageRepositoryInterface::class);
-        $this->slackMessenger = $this->createMock(SlackMessengerInterface::class);
+        $this->slackApiClient = $this->createMock(SlackApiClient::class);
         $this->gitHubSlackMappingRepository = $this->createMock(GitHubSlackMappingRepositoryInterface::class);
         $this->useCase = new ApprovePrUseCase(
             $this->slackMessageRepository,
             $this->gitHubSlackMappingRepository,
-            $this->slackMessenger,
+            $this->slackApiClient,
             $this->createMock(LoggerInterface::class)
         );
     }
@@ -62,8 +63,9 @@ class ApprovePrUseCaseTest extends TestCase
             ->method('findByRepository')
             ->willReturn($gitHubSlackMapping);
 
-        $this->slackMessenger->expects($this->once())
-            ->method('updateMessage');
+        $this->slackApiClient->expects($this->once())
+            ->method('addReaction')
+            ->willReturn(new SlackResponse());
 
         // Act
         $this->useCase->handle($webHookTransfer);

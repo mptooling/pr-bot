@@ -6,7 +6,7 @@ namespace App\PullRequest;
 
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
-use App\Slack\SlackMessengerInterface;
+use App\Slack\SlackApiClient;
 use App\Transfers\WebHookTransfer;
 use Psr\Log\LoggerInterface;
 
@@ -15,8 +15,9 @@ final readonly class ApprovePrUseCase implements PrEventHandlerInterface
     public function __construct(
         private SlackMessageRepositoryInterface $slackMessageRepository,
         private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository,
-        private SlackMessengerInterface $slackMessenger,
+        private SlackApiClient $slackApiClient,
         private LoggerInterface $logger,
+        private string $approvedPrReaction = 'white_check_mark',
     ) {
     }
 
@@ -45,6 +46,10 @@ final readonly class ApprovePrUseCase implements PrEventHandlerInterface
             return;
         }
 
-        // todo :: add slack reaction for approved PR
+        $this->slackApiClient->addReaction(
+            $slackMapping,
+            (string) $slackMessage->getTs(),
+            $this->approvedPrReaction,
+        );
     }
 }
