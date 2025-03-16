@@ -9,15 +9,13 @@ use App\Entity\SlackMessage;
 use App\Transfers\WebHookTransfer;
 use Override;
 use Psr\Log\LoggerInterface;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Throwable;
 
 final readonly class SlackMessenger implements SlackMessengerInterface
 {
     public function __construct(
-        private HttpClientInterface $httpClient,
+        private SlackApiClient $slackApiClient,
         private LoggerInterface $logger,
-        private string $slackBotToken,
         private bool $withReactions = false,
         private string $slackReactionNewPr = 'rocket',
         private string $slackReactionMergedPr = 'white_check_mark',
@@ -26,11 +24,11 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     }
 
     #[Override]
-    public function sendNewMessage(WebHookTransfer $webHookTransfer, GitHubSlackMapping $slackMapping): array
+    public function sendNewMessage(WebHookTransfer $webHookTransfer, GitHubSlackMapping $slackMapping): SlackResponse
     {
         $message = $this->composeNewSlackMessage($webHookTransfer, $slackMapping);
 
-        return $this->post($message, $slackMapping);
+        return $this->slackApiClient->postChatMessage($message, $slackMapping);
     }
 
     #[Override]
@@ -76,7 +74,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         $this->logger->info('Payload', $payload);
 
         try {
-            $response = $this->httpClient->request('POST', $url, [
+            $response = $this->slackApiClient->request('POST', $url, [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->slackBotToken,
                     'Content-Type'  => 'application/json',
@@ -114,7 +112,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     private function addReactionToMessage(string $ts, string $emoji, GitHubSlackMapping $slackMapping): void
     {
         try {
-            $response = $this->httpClient->request('POST', 'https://slack.com/api/reactions.add', [
+            $response = $this->slackApiClient->request('POST', 'https://slack.com/api/reactions.add', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->slackBotToken,
                     'Content-Type'  => 'application/json',
@@ -149,7 +147,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
     public function removeMessage(SlackMessage $slackMessage, GitHubSlackMapping $slackMapping): bool
     {
         try {
-            $response = $this->httpClient->request('POST', 'https://slack.com/api/chat.delete', [
+            $response = $this->slackApiClient->request('POST', 'https://slack.com/api/chat.delete', [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $this->slackBotToken,
                     'Content-Type'  => 'application/json',

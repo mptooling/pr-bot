@@ -10,6 +10,7 @@ use App\PullRequest\OpenPrUseCase;
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
 use App\Slack\SlackMessengerInterface;
+use App\Slack\SlackResponse;
 use App\Transfers\WebHookTransfer;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -128,7 +129,7 @@ class OpenPrUseCaseTest extends TestCase
 
         $this->slackMessenger->expects($this->once())
             ->method('sendNewMessage')
-            ->willReturn([]);
+            ->willReturn(SlackResponse::fail());
 
         $this->entityManager->expects($this->never())
             ->method('persist');
@@ -160,7 +161,7 @@ class OpenPrUseCaseTest extends TestCase
 
         $this->slackMessenger->expects($this->once())
             ->method('sendNewMessage')
-            ->willReturn(['ts' => '1234567890']);
+            ->willReturn(new SlackResponse(slackMessageId: '1234567890'));
 
         $this->entityManager->expects($this->once())
             ->method('persist');

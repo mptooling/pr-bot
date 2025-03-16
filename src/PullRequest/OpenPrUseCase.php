@@ -43,7 +43,7 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
         }
 
         $slackResponse = $this->slackMessenger->sendNewMessage($webHookTransfer, $slackMapping);
-        if (!isset($slackResponse['ts'])) {
+        if (!$slackResponse->isSuccessful) {
             $this->logger->error('Slack message not sent', [
                 'prNumber' => $webHookTransfer->prNumber,
                 'response' => $slackResponse,
@@ -55,7 +55,7 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
         $entity = new SlackMessage();
         $entity->setPrNumber($webHookTransfer->prNumber)
             ->setGhRepository($webHookTransfer->repository)
-            ->setTs($slackResponse['ts']);
+            ->setTs($slackResponse->slackMessageId);
 
         $this->entityManager->persist($entity);
         $this->entityManager->flush();

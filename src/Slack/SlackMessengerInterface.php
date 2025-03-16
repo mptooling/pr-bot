@@ -13,7 +13,7 @@ interface SlackMessengerInterface
     /**
      * @return array<string, string>
      */
-    public function sendNewMessage(WebHookTransfer $webHookTransfer, GitHubSlackMapping $slackMapping): array;
+    public function sendNewMessage(WebHookTransfer $webHookTransfer, GitHubSlackMapping $slackMapping): SlackResponse;
 
     /**
      * @return array<string, string>
