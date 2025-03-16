@@ -41,6 +41,7 @@ class DraftPrUseCaseTest extends TestCase
             $this->createMock(LoggerInterface::class)
         );
     }
+
     public function testHandleDraftFromScratch(): void
     {
         // Arrange
