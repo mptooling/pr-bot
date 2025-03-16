@@ -64,4 +64,50 @@ final readonly class SlackApiClient
 
         return new SlackResponse($data['ts']);
     }
+
+    public function updateChatMessage(GitHubSlackMapping $slackMapping, string $ts, string $message): SlackResponse
+    {
+        $payload = [
+            'channel' => $slackMapping->getSlackChannel(),
+            'text'    => $message,
+            'ts'      => $ts,
+        ];
+
+        $this->logger->debug('Payload', $payload);
+
+        try {
+            $response = $this->httpClient->request('POST', 'https://slack.com/api/chat.update', [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $this->slackBotToken,
+                    'Content-Type'  => 'application/json',
+                ],
+                'json'    => $payload,
+            ]);
+        } catch (Throwable $throwable) {
+            $this->logger->error('Failed to send message to slack', ['exception' => $throwable->getMessage()]);
+
+            return SlackResponse::fail();
+        }
+
+        try {
+            $data = $response->toArray();
+        } catch (Throwable $throwable) {
+            $this->logger->error(
+                'Failed to extract daya from slack response',
+                ['exception' => $throwable->getMessage()]
+            );
+
+            return SlackResponse::fail();
+        }
+
+        if (!$data['ok']) {
+            $this->logger->error('Failed response from slack', $data);
+
+            return SlackResponse::fail();
+        }
+
+        $this->logger->debug('[Update Message] Slack response', $data);
+
+        return new SlackResponse(slackMessageId: $data['ts']);
+    }
 }

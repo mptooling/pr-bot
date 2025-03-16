@@ -42,7 +42,7 @@ final readonly class ClosePrUseCase implements PrEventHandlerInterface
         }
 
         $slackResponse = $this->slackMessenger->updateMessage($webHookTransfer, $slackMessage, $slackMapping);
-        if (!isset($slackResponse['ts'])) {
+        if (!$slackResponse->isSuccessful) {
             $this->logger->error('Slack message not sent', [
                 'prNumber' => $webHookTransfer->prNumber,
                 'response' => $slackResponse,

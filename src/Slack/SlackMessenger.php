@@ -36,16 +36,16 @@ final readonly class SlackMessenger implements SlackMessengerInterface
         WebHookTransfer $webHookTransfer,
         SlackMessage $slackMessage,
         GitHubSlackMapping $slackMapping
-    ): array {
+    ): SlackResponse {
         $message = sprintf(
             '[%s] ~%s~',
             $webHookTransfer->isMerged ? 'Merged' : 'Closed',
             $this->composeNewSlackMessage($webHookTransfer, $slackMapping),
         );
 
-        $result = $this->post($message, $slackMapping, $slackMessage->getTs());
-        if (empty($result)) {
-            return [];
+        $response = $this->slackApiClient->updateChatMessage($slackMapping, $slackMessage->getTs(), $message);
+        if (!$response->isSuccessful) {
+            return $response;
         }
 
         $reaction = $webHookTransfer->isMerged ? $this->slackReactionMergedPr : $this->slackReactionClosedPr;
@@ -54,59 +54,7 @@ final readonly class SlackMessenger implements SlackMessengerInterface
             $this->addReactionToMessage((string)$slackMessage->getTs(), $reaction, $slackMapping);
         }
 
-        return $result;
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function post(string $message, GitHubSlackMapping $slackMapping, ?string $ts = null): array
-    {
-        $url = 'https://slack.com/api/chat.postMessage';
-        $payload = [
-            'channel' => $slackMapping->getSlackChannel(),
-            'text'    => $message,
-        ];
-        if ($ts !== null) {
-            $payload['ts'] = $ts;
-            $url = 'https://slack.com/api/chat.update';
-        }
-        $this->logger->info('Payload', $payload);
-
-        try {
-            $response = $this->slackApiClient->request('POST', $url, [
-                'headers' => [
-                    'Authorization' => 'Bearer ' . $this->slackBotToken,
-                    'Content-Type'  => 'application/json',
-                ],
-                'json'    => $payload,
-            ]);
-        } catch (Throwable $throwable) {
-            $this->logger->error('Failed to send message to slack', ['exception' => $throwable->getMessage()]);
-
-            return [];
-        }
-
-        try {
-            $data = $response->toArray();
-        } catch (Throwable $throwable) {
-            $this->logger->error('Failed to add reaction to slack message', ['exception' => $throwable->getMessage()]);
-
-            return [];
-        }
-
-        if (!$data['ok']) {
-            $this->logger->error('Failed response from slack', $data);
-
-            return [];
-        }
-
-        $this->logger->debug('[Create|Update Message] Slack response', $data);
-
-        return [
-            'message' => $data['message']['text'],
-            'ts'      => $data['ts'], // Slack timestamp (message ID)
-        ];
+        return $response;
     }
 
     private function addReactionToMessage(string $ts, string $emoji, GitHubSlackMapping $slackMapping): void
