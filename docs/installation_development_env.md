@@ -3,7 +3,7 @@
 1. Clone the repository:
     ```sh
     git clone git@github.com:mptooling/pr-bot.git
-    cd cd pr-bot
+    cd pr-bot
     ```
 
 2. Install dependencies:
