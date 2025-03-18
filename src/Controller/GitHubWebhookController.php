@@ -47,7 +47,7 @@ final readonly class GitHubWebhookController
             isMerged:  $data['pull_request']['merged'] ?? false
         );
 
-        $this->handler->handle($action, $transfer);
+        $this->handler->handle($action, $transfer, $data);
 
         return new JsonResponse("ok");
     }

@@ -8,6 +8,12 @@ use App\Transfers\WebHookTransfer;
 
 interface PrEventHandlerInterface
 {
-    public function isApplicable(string $action): bool;
+    /**
+     * @param string $action
+     * @param array<array-key, mixed> $options
+     *
+     * @return bool
+     */
+    public function isApplicable(string $action, array $options = []): bool;
     public function handle(WebHookTransfer $webHookTransfer): void;
 }

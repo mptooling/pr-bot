@@ -9,7 +9,8 @@ use App\Entity\SlackMessage;
 use App\PullRequest\DraftPrUseCase;
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
-use App\Slack\SlackMessengerInterface;
+use App\Slack\SlackApiClient;
+use App\Slack\SlackResponse;
 use App\Transfers\WebHookTransfer;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\TestCase;
@@ -23,7 +24,7 @@ class DraftPrUseCaseTest extends TestCase
 
     private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository;
 
-    private SlackMessengerInterface $slackMessenger;
+    private SlackApiClient $slackApiClient;
 
     private DraftPrUseCase $useCase;
 
@@ -32,15 +33,16 @@ class DraftPrUseCaseTest extends TestCase
         $this->entityManager = $this->createMock(EntityManagerInterface::class);
         $this->slackMessageRepository = $this->createMock(SlackMessageRepositoryInterface::class);
         $this->gitHubSlackMappingRepository = $this->createMock(GitHubSlackMappingRepositoryInterface::class);
-        $this->slackMessenger = $this->createMock(SlackMessengerInterface::class);
+        $this->slackApiClient = $this->createMock(SlackApiClient::class);
         $this->useCase = new DraftPrUseCase(
             $this->entityManager,
             $this->slackMessageRepository,
             $this->gitHubSlackMappingRepository,
-            $this->slackMessenger,
-            $this->createMock(LoggerInterface::class)
+            $this->createMock(LoggerInterface::class),
+            $this->slackApiClient,
         );
     }
+
     public function testHandleDraftFromScratch(): void
     {
         // Arrange
@@ -60,8 +62,8 @@ class DraftPrUseCaseTest extends TestCase
 
         $this->gitHubSlackMappingRepository->expects($this->never())->method('findByRepository');
 
-        $this->slackMessenger->expects($this->never())
-            ->method('sendNewMessage');
+        $this->slackApiClient->expects($this->never())
+            ->method('postChatMessage');
         $this->entityManager->expects($this->never())
             ->method('persist');
 
@@ -90,8 +92,8 @@ class DraftPrUseCaseTest extends TestCase
             ->method('findByRepository')
             ->willReturn(null);
 
-        $this->slackMessenger->expects($this->never())
-            ->method('sendNewMessage');
+        $this->slackApiClient->expects($this->never())
+            ->method('postChatMessage');
         $this->entityManager->expects($this->never())
             ->method('persist');
 
@@ -127,10 +129,10 @@ class DraftPrUseCaseTest extends TestCase
             ->method('findByRepository')
             ->willReturn($gitHubSlackMapping);
 
-        $this->slackMessenger->expects($this->once())
-            ->method('removeMessage')
+        $this->slackApiClient->expects($this->once())
+            ->method('removeSlackMessage')
             ->with($slackMessageEntity)
-            ->willReturn(true);
+            ->willReturn(new SlackResponse());
 
         $this->entityManager->expects($this->once())
             ->method('remove')

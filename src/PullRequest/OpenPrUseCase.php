@@ -4,32 +4,31 @@ declare(strict_types=1);
 
 namespace App\PullRequest;
 
-use App\Entity\SlackMessage;
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
-use App\Slack\SlackMessengerInterface;
+use App\Slack\SlackApiClient;
+use App\Slack\SlackMessageComposer;
 use App\Transfers\WebHookTransfer;
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
 final readonly class OpenPrUseCase implements PrEventHandlerInterface
 {
     public function __construct(
-        private EntityManagerInterface $entityManager,
         private SlackMessageRepositoryInterface $slackMessageRepository,
         private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository,
-        private SlackMessengerInterface $slackMessenger,
         private LoggerInterface $logger,
+        private SlackMessageComposer $slackMessageComposer,
+        private SlackApiClient $slackApiClient,
     ) {
     }
 
     public function handle(WebHookTransfer $webHookTransfer): void
     {
-        $message = $this->slackMessageRepository->findOneByPrNumberAndRepository(
+        $slackMessage = $this->slackMessageRepository->findOneByPrNumberAndRepository(
             $webHookTransfer->prNumber,
             $webHookTransfer->repository,
         );
-        if ($message !== null) {
+        if ($slackMessage !== null) {
             $this->logger->info('Message already sent', ['prNumber' => $webHookTransfer->prNumber]);
 
             return;
@@ -42,8 +41,9 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
             return;
         }
 
-        $slackResponse = $this->slackMessenger->sendNewMessage($webHookTransfer, $slackMapping);
-        if (!isset($slackResponse['ts'])) {
+        $message = $this->slackMessageComposer->composeNewSlackMessage($webHookTransfer, $slackMapping);
+        $slackResponse = $this->slackApiClient->postChatMessage($message, $slackMapping);
+        if (!$slackResponse->isSuccessful) {
             $this->logger->error('Slack message not sent', [
                 'prNumber' => $webHookTransfer->prNumber,
                 'response' => $slackResponse,
@@ -52,18 +52,16 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
             return;
         }
 
-        $entity = new SlackMessage();
-        $entity->setPrNumber($webHookTransfer->prNumber)
-            ->setGhRepository($webHookTransfer->repository)
-            ->setTs($slackResponse['ts']);
-
-        $this->entityManager->persist($entity);
-        $this->entityManager->flush();
+        $this->slackMessageRepository->saveSlackMessage(
+            $webHookTransfer->prNumber,
+            $webHookTransfer->repository,
+            (string) $slackResponse->slackMessageId,
+        );
 
         $this->logger->info('Slack message sent', ['prNumber' => $webHookTransfer->prNumber]);
     }
 
-    public function isApplicable(string $action): bool
+    public function isApplicable(string $action, array $options = []): bool
     {
         return $action === 'opened' || $action === 'ready_for_review';
     }

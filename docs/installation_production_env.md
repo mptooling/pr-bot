@@ -25,7 +25,7 @@ Please refer to the [official Composer documentation](https://getcomposer.org/do
 ### Install Project
 ```sh
 git clone git@github.com:mptooling/pr-bot.git
-cd cd pr-bot
+cd pr-bot
 ```
 
 ### Setup env variables

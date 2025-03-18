@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\PullRequest;
 
-use App\Entity\SlackMessage;
 use App\Repository\GitHubSlackMappingRepositoryInterface;
 use App\Repository\SlackMessageRepositoryInterface;
-use App\Slack\SlackMessengerInterface;
+use App\Slack\SlackApiClient;
+use App\Slack\SlackMessageComposer;
 use App\Transfers\WebHookTransfer;
-use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
 final readonly class ClosePrUseCase implements PrEventHandlerInterface
@@ -17,8 +16,12 @@ final readonly class ClosePrUseCase implements PrEventHandlerInterface
     public function __construct(
         private SlackMessageRepositoryInterface $slackMessageRepository,
         private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository,
-        private SlackMessengerInterface $slackMessenger,
+        private SlackMessageComposer $slackMessegeComposer,
+        private SlackApiClient $slackApiClient,
         private LoggerInterface $logger,
+        private bool $isReactionsEnabled = false,
+        private string $slackReactionMergedPr = 'white_check_mark',
+        private string $slackReactionClosedPr = 'no_entry_sign',
     ) {
     }
 
@@ -41,8 +44,14 @@ final readonly class ClosePrUseCase implements PrEventHandlerInterface
             return;
         }
 
-        $slackResponse = $this->slackMessenger->updateMessage($webHookTransfer, $slackMessage, $slackMapping);
-        if (!isset($slackResponse['ts'])) {
+        $message = $this->slackMessegeComposer->composeUpdatedMessage($webHookTransfer, $slackMapping);
+        $slackResponse = $this->slackApiClient->updateChatMessage(
+            slackMapping: $slackMapping,
+            ts: (string) $slackMessage->getTs(),
+            message: $message,
+        );
+
+        if (!$slackResponse->isSuccessful) {
             $this->logger->error('Slack message not sent', [
                 'prNumber' => $webHookTransfer->prNumber,
                 'response' => $slackResponse,
@@ -51,10 +60,15 @@ final readonly class ClosePrUseCase implements PrEventHandlerInterface
             return;
         }
 
-        $this->logger->info('Slack message updated', ['prNumber' => $webHookTransfer->prNumber]);
+        if ($this->isReactionsEnabled) {
+            $reaction = $webHookTransfer->isMerged ? $this->slackReactionMergedPr : $this->slackReactionClosedPr;
+            $this->slackApiClient->addReaction($slackMapping, (string) $slackMessage->getTs(), $reaction);
+        }
+
+        $this->logger->debug('Slack message updated', ['prNumber' => $webHookTransfer->prNumber]);
     }
 
-    public function isApplicable(string $action): bool
+    public function isApplicable(string $action, array $options = []): bool
     {
         return $action === 'closed';
     }
