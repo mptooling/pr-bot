@@ -38,7 +38,7 @@ class ApprovePrUseCaseTest extends TestCase
         );
     }
 
-    public function testHandle(): void
+    public function testHandlePrApprovedFirstTime(): void
     {
         // Arrange & Assert
         $webHookTransfer = new WebHookTransfer(
@@ -63,9 +63,69 @@ class ApprovePrUseCaseTest extends TestCase
             ->method('findByRepository')
             ->willReturn($gitHubSlackMapping);
 
+
+        $this->slackApiClient->expects($this->once())
+            ->method('getBotUserId')
+            ->willReturn('123');
+
+        $this->slackApiClient->expects($this->once())
+            ->method('getMessageReactions')
+            ->willReturn(new SlackResponse());
+
         $this->slackApiClient->expects($this->once())
             ->method('addReaction')
             ->willReturn(new SlackResponse());
+
+        // Act
+        $this->useCase->handle($webHookTransfer);
+    }
+
+    public function testHandlePrAlreadyApproved(): void
+    {
+        // Arrange & Assert
+        $webHookTransfer = new WebHookTransfer(
+            repository: 'example/repo',
+            prNumber: 42,
+            prTitle: 'The title',
+            prUrl: 'https://github.com/example/repo/pull/42',
+            prAuthor: 'testuser'
+        );
+
+        $this->slackMessageRepository->expects($this->once())
+            ->method('findOneByPrNumberAndRepository')
+            ->with(42, 'example/repo')
+            ->willReturn(new SlackMessage());
+
+        $gitHubSlackMapping = new GitHubSlackMapping()
+            ->setSlackChannel('test-slack-channel')
+            ->setRepository('test-github-repository')
+            ->setMentions(['<!subtram^S12345678>']);
+
+        $this->gitHubSlackMappingRepository->expects($this->once())
+            ->method('findByRepository')
+            ->willReturn($gitHubSlackMapping);
+
+        $slackReactionsResponse = new SlackResponse();
+        $slackReactionsResponse->data->add([
+            'reactions' => [
+                [
+                    'name' => 'white_check_mark',
+                    'users' => ["123"],
+                    'count' => 1,
+                ],
+            ]
+        ]);
+
+        $this->slackApiClient->expects($this->once())
+            ->method('getBotUserId')
+            ->willReturn('123');
+
+        $this->slackApiClient->expects($this->once())
+            ->method('getMessageReactions')
+            ->willReturn($slackReactionsResponse);
+
+        $this->slackApiClient->expects($this->never())
+            ->method('addReaction');
 
         // Act
         $this->useCase->handle($webHookTransfer);

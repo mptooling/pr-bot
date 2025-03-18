@@ -16,10 +16,17 @@ final readonly class GithubPullRequestHandler
     ) {
     }
 
-    public function handle(string $action, WebHookTransfer $transfer): void
+    /**
+     * @param string $action
+     * @param WebHookTransfer $transfer
+     * @param array<array-key, mixed> $options
+     *
+     * @return void
+     */
+    public function handle(string $action, WebHookTransfer $transfer, array $options = []): void
     {
         foreach ($this->prEventHandlers as $prEventHandler) {
-            if ($prEventHandler->isApplicable($action)) {
+            if ($prEventHandler->isApplicable($action, $options)) {
                 $prEventHandler->handle($transfer);
                 break;
             }

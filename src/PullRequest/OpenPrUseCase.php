@@ -61,7 +61,7 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
         $this->logger->info('Slack message sent', ['prNumber' => $webHookTransfer->prNumber]);
     }
 
-    public function isApplicable(string $action): bool
+    public function isApplicable(string $action, array $options = []): bool
     {
         return $action === 'opened' || $action === 'ready_for_review';
     }

@@ -22,7 +22,7 @@ final readonly class DraftPrUseCase implements PrEventHandlerInterface
     ) {
     }
 
-    public function isApplicable(string $action): bool
+    public function isApplicable(string $action, array $options = []): bool
     {
         return $action === 'converted_to_draft';
     }

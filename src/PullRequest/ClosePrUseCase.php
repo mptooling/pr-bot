@@ -68,7 +68,7 @@ final readonly class ClosePrUseCase implements PrEventHandlerInterface
         $this->logger->debug('Slack message updated', ['prNumber' => $webHookTransfer->prNumber]);
     }
 
-    public function isApplicable(string $action): bool
+    public function isApplicable(string $action, array $options = []): bool
     {
         return $action === 'closed';
     }
