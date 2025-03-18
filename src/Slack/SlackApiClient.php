@@ -21,7 +21,6 @@ readonly class SlackApiClient
 
     public function postChatMessage(string $message, GitHubSlackMapping $slackMapping): SlackResponse
     {
-
         $responseData = $this->request('POST', 'https://slack.com/api/chat.postMessage', [
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->slackBotToken,

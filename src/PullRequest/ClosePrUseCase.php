@@ -46,9 +46,9 @@ final readonly class ClosePrUseCase implements PrEventHandlerInterface
 
         $message = $this->slackMessegeComposer->composeUpdatedMessage($webHookTransfer, $slackMapping);
         $slackResponse = $this->slackApiClient->updateChatMessage(
-            $slackMapping,
-            $message,
-            (string) $slackMessage->getTs()
+            slackMapping: $slackMapping,
+            ts: (string) $slackMessage->getTs(),
+            message: $message,
         );
 
         if (!$slackResponse->isSuccessful) {
