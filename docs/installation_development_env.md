@@ -18,14 +18,8 @@
        touch .env.dev.local 
    ```
 
-   3.2. Configure general env variables:
-   ```text
-   ### Slack Reactions Settings 
-      SLACK_REACTIONS_ENABLED=true # Set to true to enable reactions. Make sure bot has permissions.
-      SLACK_REACTION_NEW_PR=rocket # Emoji for new PR. Works only if SLACK_REACTIONS_ENABLED=true
-      SLACK_REACTION_MERGED_PR=white_check_mark # Emoji for merged PR. Works only if SLACK_REACTIONS_ENABLED=true
-      SLACK_REACTION_CLOSED_PR=no_entry_sign # Emoji for closed PR. Works only if SLACK_REACTIONS_ENABLED=true
-   ###
+   3.2. Configure general env variables. Read [reactions doc](reactions_config.md).
+   
    ```
    3.3. Add secret env variables:
    ```text

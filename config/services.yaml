@@ -51,3 +51,11 @@ services:
       $isReactionsEnabled: '%env(bool:SLACK_REACTIONS_ENABLED)%'
       $slackReactionMergedPr: '%env(SLACK_REACTION_MERGED_PR)%'
       $slackReactionClosedPr: '%env(SLACK_REACTION_CLOSED_PR)%'
+
+  App\PullRequest\CommentedPrUseCase:
+    arguments:
+      $reaction: '%env(SLACK_REACTION_PR_COMMENTED)%'
+
+  App\PullRequest\RequestChangePrUseCase:
+    arguments:
+      $reaction: '%env(SLACK_REACTION_PR_REQUEST_CHANGE)%'
