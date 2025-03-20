@@ -16,34 +16,26 @@ use Psr\Log\LoggerInterface;
  * {
  * "action": "submitted",
  *     "review": {
- *         "state": "commented",
+ *         "state": "changes_requested",
  *      }
  * }
- *
- * GH Start review comment on PR Event required data part:
- * {
- * "action": "edited",
- *     "review": {
- *         "state": "commented",
- *     }
- * }
  */
-final readonly class CommentedPrUseCase implements PrEventHandlerInterface
+final readonly class RequestChangePrUseCase implements PrEventHandlerInterface
 {
     public function __construct(
         private SlackMessageRepositoryInterface $slackMessageRepository,
         private GitHubSlackMappingRepositoryInterface $gitHubSlackMappingRepository,
         private SlackApiClient $slackApiClient,
         private LoggerInterface $logger,
-        private string $reaction = 'speech_balloon',
+        private string $reaction = 'exclamation',
     ) {
     }
 
     public function isApplicable(string $action, array $options = []): bool
     {
-        return (in_array($action, ['submitted', 'edited']))
+        return ($action === 'submitted')
             && isset($options['review']['state'])
-            && $options['review']['state'] === 'commented';
+            && $options['review']['state'] === 'changes_requested';
     }
 
     public function handle(WebHookTransfer $webHookTransfer): void
