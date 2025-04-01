@@ -63,6 +63,6 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
 
     public function isApplicable(string $action, array $options = []): bool
     {
-        return $action === 'opened' || $action === 'ready_for_review';
+        return $action === 'opened' && $action === 'ready_for_review';
     }
 }
