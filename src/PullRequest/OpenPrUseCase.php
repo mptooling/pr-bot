@@ -67,7 +67,7 @@ final readonly class OpenPrUseCase implements PrEventHandlerInterface
             || (
                 $action === 'opened'
                 && isset($options['pull_request']['draft'])
-                && $options['pull_request']['draft'] === true
+                && $options['pull_request']['draft'] === false
             );
     }
 }
