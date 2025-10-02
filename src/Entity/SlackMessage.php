@@ -17,6 +17,7 @@ class SlackMessage
     #[ORM\Column(type: "string", length: 255)]
     private ?string $ts = null;
 
+    #[ORM\Id]
     #[ORM\Column(type: "string", length: 255)]
     private ?string $ghRepository = null;
 
