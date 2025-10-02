@@ -52,7 +52,11 @@ class ApprovePrUseCaseTest extends TestCase
         $this->slackMessageRepository->expects($this->once())
             ->method('findOneByPrNumberAndRepository')
             ->with(42, 'example/repo')
-            ->willReturn(new SlackMessage());
+            ->willReturn(new SlackMessage(
+                prNumber: 42,
+                ghRepository: 'example/repo',
+                ts: '1234567890.123456',
+            ));
 
         $gitHubSlackMapping = new GitHubSlackMapping()
             ->setSlackChannel('test-slack-channel')
@@ -94,7 +98,11 @@ class ApprovePrUseCaseTest extends TestCase
         $this->slackMessageRepository->expects($this->once())
             ->method('findOneByPrNumberAndRepository')
             ->with(42, 'example/repo')
-            ->willReturn(new SlackMessage());
+            ->willReturn(new SlackMessage(
+                prNumber: 42,
+                ghRepository: 'example/repo',
+                ts: '1234567890.123456',
+            ));
 
         $gitHubSlackMapping = new GitHubSlackMapping()
             ->setSlackChannel('test-slack-channel')
