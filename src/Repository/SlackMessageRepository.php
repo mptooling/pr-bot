@@ -31,10 +31,11 @@ final class SlackMessageRepository extends ServiceEntityRepository implements Sl
 
     public function saveSlackMessage(int $prNumber, string $repositoryName, string $slackMessageId): void
     {
-        $entity = new SlackMessage();
-        $entity->setPrNumber($prNumber)
-            ->setGhRepository($repositoryName)
-            ->setTs($slackMessageId);
+        $entity = new SlackMessage(
+            prNumber: $prNumber,
+            ghRepository: $repositoryName,
+            ts: $slackMessageId,
+        );
 
         $this->managerRegistry->getManager()->persist($entity);
         $this->managerRegistry->getManager()->flush();
