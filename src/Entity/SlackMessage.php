@@ -14,10 +14,8 @@ class SlackMessage
         #[ORM\Id]
         #[ORM\Column(type: "integer")]
         private int $prNumber,
-
         #[ORM\Column(type: "string", length: 255)]
         private string $ts,
-
         #[ORM\Id]
         #[ORM\Column(type: "string", length: 255)]
         private string $ghRepository,
