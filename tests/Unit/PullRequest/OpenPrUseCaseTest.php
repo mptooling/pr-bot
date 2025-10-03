@@ -57,7 +57,11 @@ class OpenPrUseCaseTest extends TestCase
         $this->slackMessageRepository->expects($this->once())
             ->method('findOneByPrNumberAndRepository')
             ->with(42, 'example/repo')
-            ->willReturn(new SlackMessage());
+            ->willReturn(new SlackMessage(
+                prNumber: 42,
+                ghRepository: 'example/repo',
+                ts: '1234567890.123456',
+            ));
 
         $this->gitHubSlackMappingRepository->expects($this->never()) ->method('findByRepository');
 

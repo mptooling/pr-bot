@@ -86,7 +86,11 @@ class DraftPrUseCaseTest extends TestCase
         $this->slackMessageRepository->expects($this->once())
             ->method('findOneByPrNumberAndRepository')
             ->with(42, 'example/repo')
-            ->willReturn(new SlackMessage());
+            ->willReturn(new SlackMessage(
+                prNumber: 42,
+                ghRepository: 'example/repo',
+                ts: '1234567890.123456',
+            ));
 
         $this->gitHubSlackMappingRepository->expects($this->once())
             ->method('findByRepository')
@@ -112,7 +116,11 @@ class DraftPrUseCaseTest extends TestCase
             prAuthor: 'testuser'
         );
 
-        $slackMessageEntity = new SlackMessage()->setPrNumber(42)->setTs('12345.6789');
+        $slackMessageEntity = new SlackMessage(
+            prNumber: 42,
+            ts: '1234567890.123456',
+            ghRepository: 'example/repo',
+        );
 
         // Assert
         $this->slackMessageRepository->expects($this->once())
