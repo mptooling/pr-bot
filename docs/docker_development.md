@@ -10,28 +10,28 @@ Build and run the app locally using the Dockerfile in this repository.
 
 ### Build
 ```sh
-docker build -t pr-bot:latest .
+docker build -t pr-notificator:latest .
 ```
 
 ### Run (env-file)
 ```sh
-docker run -d --name pr-bot \
+docker run -d --name pr-notificator \
   --env-file .env.prod.local \
   -p 8080:80 \
-  pr-bot:latest
+  pr-notificator:latest
 ```
 
 ### Run (bind-mount env files)
 ```sh
-docker run -d --name pr-bot \
+docker run -d --name pr-notificator \
   -p 8080:80 \
   -v "$PWD/.env.prod:/app/.env.prod:ro" \
   -v "$PWD/.env.prod.local:/app/.env.prod.local:ro" \
-  pr-bot:latest
+  pr-notificator:latest
 ```
 
 ### Troubleshooting
-- Logs: `docker logs -f pr-bot`
-- Shell: `docker exec -it pr-bot sh`
+- Logs: `docker logs -f pr-notificator`
+- Shell: `docker exec -it pr-notificator sh`
 
 
