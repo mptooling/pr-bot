@@ -34,11 +34,16 @@ APP_ENV=prod APP_DEBUG=0 php bin/console cache:warmup
 ```
 
 ### 5) Restart webserver
+```sh
+# Nginx (systemd)
+sudo systemctl reload nginx || sudo systemctl restart nginx
+
+# Symfony local server (if used during testing)
+symfony server:stop || true
+symfony server:start -d
 ```
 
-```
-
-### 5) Verify
+### 6) Verify
 Check the webhook endpoint responds (it should reject unauthenticated calls):
 ```sh
 curl -i -X POST \
