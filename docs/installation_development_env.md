@@ -19,8 +19,7 @@
    ```
 
    3.2. Configure general env variables. Read [reactions doc](reactions_config.md).
-   
-   ```
+
    3.3. Add secret env variables:
    ```text
        GITHUB_WEBHOOK_SECRET=dummy # Set your GitHub webhook secret

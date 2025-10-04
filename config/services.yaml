@@ -46,6 +46,10 @@ services:
     App\PullRequest\PrEventHandlerInterface:
       tags: [ 'pr_event_handler' ]
 
+  App\PullRequest\DraftPrUseCase:
+    tags:
+    - { name: 'pr_event_handler', priority: 100 }
+
   App\PullRequest\ClosePrUseCase:
     arguments:
       $isReactionsEnabled: '%env(bool:SLACK_REACTIONS_ENABLED)%'

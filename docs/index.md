@@ -21,6 +21,8 @@ Bot Requirements:
 
 - [Development Environment](installation_development_env.md)
 - [Production Environment](installation_production_env.md)
+- [Docker (Production)](docker_production.md)
+- [Docker (Development)](docker_development.md)
 
 ## Configuration
 ### Message routing configuration
