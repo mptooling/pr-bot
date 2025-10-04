@@ -1,3 +1,6 @@
+## Production Image
+# Author: Pavlo Maksymov
+
 FROM composer:2 AS composer
 
 WORKDIR /app
